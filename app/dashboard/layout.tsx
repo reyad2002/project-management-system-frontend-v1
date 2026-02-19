@@ -33,7 +33,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:ml-56">
         <Header onMenuClick={() => setSidebarOpen((prev) => !prev)} />
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
       </div>

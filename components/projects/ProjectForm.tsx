@@ -1,11 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
 import { PROJECT_STATUSES } from "@/lib/constants";
 import type { Project } from "@/lib/api";
@@ -36,6 +37,16 @@ interface ProjectFormProps {
   isLoading?: boolean;
 }
 
+const defaultEmpty: ProjectFormData = {
+  client_id: "",
+  title: "",
+  details: "",
+  start_date: "",
+  due_date: "",
+  price: "",
+  status: "active",
+};
+
 export function ProjectForm({
   project,
   clientOptions,
@@ -45,29 +56,46 @@ export function ProjectForm({
 }: ProjectFormProps) {
   const {
     register,
+    control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ProjectFormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      client_id: project?.client_id ?? "",
-      title: project?.title ?? "",
-      details: project?.details ?? "",
-      start_date: project?.start_date ?? "",
-      due_date: project?.due_date ?? "",
-      price: project?.price ?? "",
-      status: project?.status ?? "active",
-    },
+    defaultValues: defaultEmpty,
   });
 
+  useEffect(() => {
+    if (project) {
+      reset({
+        client_id: project.client_id ?? "",
+        title: project.title ?? "",
+        details: project.details ?? "",
+        start_date: project.start_date ?? "",
+        due_date: project.due_date ?? "",
+        price: project.price ?? "",
+        status: project.status ?? "active",
+      });
+    } else {
+      reset(defaultEmpty);
+    }
+  }, [project, reset]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Select
-        label="Client *"
-        options={clientOptions}
-        error={errors.client_id?.message}
-        defaultValue={project?.client_id ?? ""}
-        {...register("client_id")}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <Controller
+        name="client_id"
+        control={control}
+        render={({ field }) => (
+          <CustomSelect
+            label="Client *"
+            options={clientOptions}
+            placeholder="Choose client"
+            error={errors.client_id?.message}
+            {...field}
+            onChange={(v) => field.onChange(v)}
+          />
+        )}
       />
       <Input label="Title *" error={errors.title?.message} {...register("title")} />
       <Textarea label="Details" error={errors.details?.message} {...register("details")} />
@@ -75,6 +103,8 @@ export function ProjectForm({
         <Input label="Start date" type="date" error={errors.start_date?.message} {...register("start_date")} />
         <Input label="Due date" type="date" error={errors.due_date?.message} {...register("due_date")} />
       </div>
+      <div className="grid grid-cols-2 gap-4">
+
       <Input
         label="Price"
         type="number"
@@ -83,14 +113,22 @@ export function ProjectForm({
         error={errors.price?.message}
         {...register("price")}
       />
-      <Select
-        label="Status"
-        options={PROJECT_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
-        error={errors.status?.message}
-        defaultValue={project?.status ?? "active"}
-        {...register("status")}
+      <Controller
+        name="status"
+        control={control}
+        render={({ field }) => (
+          <CustomSelect
+            label="Status"
+            options={PROJECT_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+            placeholder="Select status"
+            error={errors.status?.message}
+            {...field}
+            onChange={(v) => field.onChange(v)}
+          />
+        )}
       />
-      <div className="flex gap-2">
+      </div>
+      <div className="flex flex-wrap gap-3 pt-1">
         <Button type="submit" loading={isLoading}>
           {project ? "Update" : "Create"}
         </Button>

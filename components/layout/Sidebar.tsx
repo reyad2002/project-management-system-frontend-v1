@@ -48,10 +48,9 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         }`}
       />
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-[100vh] w-56 flex-col bg-[var(--sidebar-bg)] text-[var(--sidebar-foreground)] shadow-xl transition-transform duration-200 ease-out md:relative md:translate-x-0 md:shadow-none ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-56 flex-col bg-[var(--sidebar-bg)] text-[var(--sidebar-foreground)] shadow-xl transition-transform duration-200 ease-out md:translate-x-0 md:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
-        aria-hidden={!open}
       >
         <div className="flex h-14 items-center justify-between border-b border-[var(--sidebar-hover)] px-4">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={handleLinkClick}>

@@ -1,11 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import type { Payment } from "@/lib/api";
@@ -29,6 +30,17 @@ interface PaymentFormProps {
   isLoading?: boolean;
 }
 
+const getDefaultValues = (
+  payment?: Payment | null,
+  defaultProjectId?: string
+): PaymentFormData => ({
+  project_id: payment?.project_id ?? defaultProjectId ?? "",
+  amount: payment?.amount ?? 0,
+  payment_date: payment?.payment_date ?? new Date().toISOString().slice(0, 10),
+  payment_method: payment?.payment_method ?? "cash",
+  notes: payment?.notes ?? "",
+});
+
 export function PaymentForm({
   payment,
   projectOptions,
@@ -39,27 +51,37 @@ export function PaymentForm({
 }: PaymentFormProps) {
   const {
     register,
+    control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<PaymentFormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      project_id: payment?.project_id ?? defaultProjectId ?? "",
-      amount: payment?.amount ?? undefined,
-      payment_date: payment?.payment_date ?? new Date().toISOString().slice(0, 10),
-      payment_method: payment?.payment_method ?? "cash",
-      notes: payment?.notes ?? "",
-    },
+    defaultValues: getDefaultValues(undefined, defaultProjectId),
   });
 
+  useEffect(() => {
+    reset(getDefaultValues(payment, defaultProjectId));
+  }, [payment, defaultProjectId, reset]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Select
-        label="Project *"
-        options={projectOptions}
-        error={errors.project_id?.message}
-        {...register("project_id")}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <Controller
+        name="project_id"
+        control={control}
+        render={({ field }) => (
+          <CustomSelect
+            label="Project *"
+            options={projectOptions}
+            placeholder="Choose project"
+            error={errors.project_id?.message}
+            {...field}
+            onChange={(v) => field.onChange(v)}
+          />
+        )}
       />
+      <div className="grid grid-cols-2 gap-4">
+
       <Input
         label="Amount *"
         type="number"
@@ -74,14 +96,23 @@ export function PaymentForm({
         error={errors.payment_date?.message}
         {...register("payment_date")}
       />
-      <Select
-        label="Payment method *"
-        options={PAYMENT_METHODS.map((p) => ({ value: p.value, label: p.label }))}
-        error={errors.payment_method?.message}
-        {...register("payment_method")}
+      </div>
+      <Controller
+        name="payment_method"
+        control={control}
+        render={({ field }) => (
+          <CustomSelect
+            label="Payment method *"
+            options={PAYMENT_METHODS.map((p) => ({ value: p.value, label: p.label }))}
+            placeholder="Select method"
+            error={errors.payment_method?.message}
+            {...field}
+            onChange={(v) => field.onChange(v)}
+          />
+        )}
       />
       <Textarea label="Notes" error={errors.notes?.message} {...register("notes")} />
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-3 pt-1">
         <Button type="submit" loading={isLoading}>
           {payment ? "Update" : "Create"}
         </Button>
