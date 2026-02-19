@@ -57,7 +57,7 @@ export const projectsApi = {
 
 // Payments
 export const paymentsApi = {
-  list: (params?: { page?: number; limit?: number; project_id?: string; client_id?: string }) =>
+  list: (params?: { page?: number; limit?: number; project_id?: string; client_id?: string; from_date?: string; to_date?: string }) =>
     api.get<{ payments: Payment[]; pagination: Pagination }>("/api/payments", { params }),
   get: (id: string) => api.get<Payment>(`/api/payments/${id}`),
   create: (data: CreatePaymentInput) => api.post<Payment>("/api/payments", data),

@@ -36,7 +36,12 @@ const defaultEmpty: ExpenseFormData = {
   type: "direct",
 };
 
-export function ExpenseForm({ expense, onSubmit, onCancel, isLoading }: ExpenseFormProps) {
+export function ExpenseForm({
+  expense,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: ExpenseFormProps) {
   const {
     register,
     control,
@@ -64,31 +69,42 @@ export function ExpenseForm({ expense, onSubmit, onCancel, isLoading }: ExpenseF
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-     <div className="grid grid-cols-2 gap-4">
-
-     <Input
-        label="Amount *"
-        type="number"
-        step="0.01"
-        min="0.01"
-        error={errors.amount?.message}
-        {...register("amount", { valueAsNumber: true })}
-      />
-      <Input
-        label="Expense date *"
-        type="date"
-        error={errors.expense_date?.message}
-        {...register("expense_date")}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Amount *"
+          type="number"
+          step="0.01"
+          min="0.01"
+          error={errors.amount?.message}
+          {...register("amount", { valueAsNumber: true })}
+        />
+        <Input
+          label="Expense date *"
+          type="date"
+          error={errors.expense_date?.message}
+          {...register("expense_date")}
+        />
       </div>
-      <Textarea label="Description" error={errors.description?.message} {...register("description")} />
+      <Input
+        label="Title *"
+        error={errors.title?.message}
+        {...register("title")}
+      />
+      <Textarea
+        label="Description"
+        error={errors.description?.message}
+        {...register("description")}
+      />
       <Controller
         name="type"
         control={control}
         render={({ field }) => (
           <CustomSelect
             label="Type *"
-            options={EXPENSE_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+            options={EXPENSE_TYPES.map((t) => ({
+              value: t.value,
+              label: t.label,
+            }))}
             placeholder="Select type"
             error={errors.type?.message}
             {...field}

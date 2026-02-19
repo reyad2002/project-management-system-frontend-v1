@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePayments, useDeletePayment } from "@/hooks/use-payments";
+import { useProjectsShortList } from "@/hooks/use-projects";
+import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { PaymentFormModal } from "./PaymentFormModal";
 
@@ -15,17 +19,39 @@ function formatMoney(n: number) {
 export default function PaymentsPage() {
   const searchParams = useSearchParams();
   const projectIdFromUrl = searchParams.get("project_id") ?? "";
+  const clientIdFromUrl = searchParams.get("client_id") ?? "";
+  const fromDateFromUrl = searchParams.get("from_date") ?? "";
+  const toDateFromUrl = searchParams.get("to_date") ?? "";
+
   const [page, setPage] = useState(1);
   const [projectId, setProjectId] = useState(projectIdFromUrl);
+  const [clientId, setClientId] = useState(clientIdFromUrl);
+  const [fromDate, setFromDate] = useState(fromDateFromUrl);
+  const [toDate, setToDate] = useState(toDateFromUrl);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProjectId(projectIdFromUrl);
+    setClientId(clientIdFromUrl);
+    setFromDate(fromDateFromUrl);
+    setToDate(toDateFromUrl);
+  }, [projectIdFromUrl, clientIdFromUrl, fromDateFromUrl, toDateFromUrl]);
 
   const { data, isLoading } = usePayments({
     page,
     limit: 10,
     project_id: projectId || undefined,
+    client_id: clientId || undefined,
+    from_date: fromDate || undefined,
+    to_date: toDate || undefined,
   });
+  const { data: projectsData } = useProjectsShortList();
+  const { data: clientsData } = useClientsShortList();
   const deletePayment = useDeletePayment();
+
+  const projectOptions = projectsData?.projects?.map((p) => ({ value: p.id, label: p.title })) ?? [];
+  const clientOptions = clientsData?.clients?.map((c) => ({ value: c.id, label: c.name })) ?? [];
 
   const pagination = data?.pagination;
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;
@@ -44,7 +70,36 @@ export default function PaymentsPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+          <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <Select
+              label="Project"
+              options={[{ value: "", label: "All projects" }, ...projectOptions]}
+              value={projectId}
+              onChange={(e) => { setProjectId(e.target.value); setPage(1); }}
+            />
+            <Select
+              label="Client"
+              options={[{ value: "", label: "All clients" }, ...clientOptions]}
+              value={clientId}
+              onChange={(e) => { setClientId(e.target.value); setPage(1); }}
+            />
+            <Input
+              type="date"
+              label="From date"
+              value={fromDate}
+              onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
+            />
+            <Input
+              type="date"
+              label="To date"
+              value={toDate}
+              onChange={(e) => { setToDate(e.target.value); setPage(1); }}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />

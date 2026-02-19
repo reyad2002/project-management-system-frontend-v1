@@ -8,6 +8,8 @@ export function usePayments(params?: {
   limit?: number;
   project_id?: string;
   client_id?: string;
+  from_date?: string;
+  to_date?: string;
 }) {
   return useQuery({
     queryKey: ["payments", params],
