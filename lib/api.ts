@@ -38,6 +38,8 @@ export const clientsApi = {
     api.get<{ clients: Client[]; pagination: Pagination }>("/api/clients", { params }),
   shortList: () => api.get<{ clients: { id: string; name: string }[] }>("/api/clients/shortList"),
   get: (id: string) => api.get<Client>(`/api/clients/${id}`),
+  getPaymentSummary: (id: string) =>
+    api.get<ClientPaymentSummary>(`/api/clients/${id}/payment-summary`),
   create: (data: CreateClientInput) => api.post<Client>("/api/clients", data),
   update: (id: string, data: Partial<CreateClientInput>) => api.put<Client>(`/api/clients/${id}`, data),
   delete: (id: string) => api.delete(`/api/clients/${id}`),
@@ -53,6 +55,18 @@ export const projectsApi = {
   update: (id: string, data: Partial<CreateProjectInput>) => api.put<Project>(`/api/projects/${id}`, data),
   delete: (id: string) => api.delete(`/api/projects/${id}`),
   payments: (id: string) => api.get<{ payments: Payment[] }>(`/api/projects/${id}/payments`),
+  phases: {
+    list: (projectId: string, params?: { page?: number; limit?: number }) =>
+      api.get<{ phases: Phase[]; pagination: Pagination }>(`/api/projects/${projectId}/phases`, { params }),
+    get: (projectId: string, phaseId: string) =>
+      api.get<Phase>(`/api/projects/${projectId}/phases/${phaseId}`),
+    create: (projectId: string, data: CreatePhaseInput) =>
+      api.post<Phase>(`/api/projects/${projectId}/phases`, data),
+    update: (projectId: string, phaseId: string, data: UpdatePhaseInput) =>
+      api.put<Phase>(`/api/projects/${projectId}/phases/${phaseId}`, data),
+    delete: (projectId: string, phaseId: string) =>
+      api.delete(`/api/projects/${projectId}/phases/${phaseId}`),
+  },
 };
 
 // Payments
@@ -123,6 +137,13 @@ export interface CreateClientInput {
   feedback?: string;
 }
 
+export interface ClientPaymentSummary {
+  client_id: string;
+  total_amount_to_pay: number;
+  amount_paid: number;
+  remaining: number;
+}
+
 export type ProjectStatus = "draft" | "active" | "on_hold" | "cancelled" | "completed";
 export interface Project {
   id: string;
@@ -146,6 +167,33 @@ export interface CreateProjectInput {
   due_date?: string;
   price?: number;
   status?: ProjectStatus;
+}
+
+export interface Phase {
+  id: string;
+  project_id: string;
+  start_date: string;
+  end_date: string;
+  amount: number;
+  title: string;
+  notes: string | null;
+  created_at?: string;
+}
+
+export interface CreatePhaseInput {
+  start_date: string;
+  end_date: string;
+  amount: number;
+  title: string;
+  notes?: string;
+}
+
+export interface UpdatePhaseInput {
+  start_date?: string;
+  end_date?: string;
+  amount?: number;
+  title?: string;
+  notes?: string;
 }
 
 export type PaymentMethod = "cash" | "bank_transfer" | "credit_card" | "other";

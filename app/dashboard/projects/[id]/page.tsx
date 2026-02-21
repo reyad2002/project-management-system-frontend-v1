@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useProject, useProjectPayments } from "@/hooks/use-projects";
+import { usePhases, useDeletePhase } from "@/hooks/use-phases";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, Calendar, DollarSign } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, Plus, Pencil, Trash2, Layers } from "lucide-react";
+import { PhaseFormModal } from "./PhaseFormModal";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
@@ -17,6 +20,10 @@ export default function ProjectDetailPage() {
   const id = params.id as string;
   const { data: project, isLoading, error } = useProject(id);
   const { data: paymentsData } = useProjectPayments(id);
+  const { data: phasesData } = usePhases(id, { page: 1, limit: 100 });
+  const deletePhase = useDeletePhase(id);
+  const [phaseModalOpen, setPhaseModalOpen] = useState(false);
+  const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -38,6 +45,7 @@ export default function ProjectDetailPage() {
   }
 
   const payments = paymentsData?.payments ?? [];
+  const phases = phasesData?.phases ?? [];
   const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
   const remaining = (project.price ?? 0) - totalPaid;
 
@@ -107,6 +115,78 @@ export default function ProjectDetailPage() {
           </Link>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-[var(--muted)]" />
+            Phases
+          </CardTitle>
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditingPhaseId(null);
+              setPhaseModalOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add phase
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {phases.length === 0 ? (
+            <p className="text-[var(--muted)]">No phases yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {phases.map((ph) => (
+                <li
+                  key={ph.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
+                >
+                  <div>
+                    <span className="font-medium">{ph.title}</span>
+                    <span className="mx-2 text-[var(--muted)]">·</span>
+                    <span>{ph.start_date} – {ph.end_date}</span>
+                    <span className="mx-2 text-[var(--muted)]">·</span>
+                    <span className="font-medium">{formatMoney(ph.amount)}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingPhaseId(ph.id);
+                        setPhaseModalOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Delete this phase?")) deletePhase.mutate(ph.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <PhaseFormModal
+        open={phaseModalOpen}
+        onClose={() => {
+          setPhaseModalOpen(false);
+          setEditingPhaseId(null);
+        }}
+        projectId={id}
+        phaseId={editingPhaseId}
+      />
     </div>
   );
 }

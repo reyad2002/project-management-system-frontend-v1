@@ -25,6 +25,14 @@ export function useClient(id: string | null) {
   });
 }
 
+export function useClientPaymentSummary(id: string | null) {
+  return useQuery({
+    queryKey: ["clients", id, "payment-summary"],
+    queryFn: () => clientsApi.getPaymentSummary(id!).then((r) => r.data),
+    enabled: !!id,
+  });
+}
+
 export function useCreateClient() {
   const qc = useQueryClient();
   return useMutation({

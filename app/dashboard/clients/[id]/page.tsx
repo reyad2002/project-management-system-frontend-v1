@@ -2,16 +2,21 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useClient } from "@/hooks/use-clients";
+import { useClient, useClientPaymentSummary } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, FileText, DollarSign } from "lucide-react";
+
+function formatMoney(n: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
+}
 
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
   const { data: client, isLoading, error } = useClient(id);
+  const { data: paymentSummary } = useClientPaymentSummary(id);
 
   if (isLoading) {
     return (
@@ -79,6 +84,31 @@ export default function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {paymentSummary && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-[var(--muted)]" />
+              Payment summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-sm text-[var(--muted)]">Total amount to pay</p>
+              <p className="text-lg font-semibold">{formatMoney(paymentSummary.total_amount_to_pay)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-[var(--muted)]">Amount paid</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{formatMoney(paymentSummary.amount_paid)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-[var(--muted)]">Remaining</p>
+              <p className="text-lg font-semibold">{formatMoney(paymentSummary.remaining)}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex gap-2">
         <Link href={`/dashboard/projects?client_id=${client.id}`}>
