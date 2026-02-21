@@ -17,7 +17,7 @@ export function PaymentFormModal({ open, onClose, paymentId, defaultProjectId }:
   const createPayment = useCreatePayment();
   const updatePayment = useUpdatePayment(paymentId ?? "");
 
-  const projectOptions = projectsData?.projects?.map((p) => ({ value: p.id, label: p.title })) ?? [];
+  const projectOptions = projectsData?.projects?.map((p) => ({ value: String(p.id), label: p.title })) ?? [];
 
   if (!open) return null;
 

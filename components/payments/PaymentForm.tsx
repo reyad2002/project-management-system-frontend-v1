@@ -34,7 +34,7 @@ const getDefaultValues = (
   payment?: Payment | null,
   defaultProjectId?: string
 ): PaymentFormData => ({
-  project_id: payment?.project_id ?? defaultProjectId ?? "",
+  project_id: payment?.project_id != null ? String(payment.project_id) : (defaultProjectId ?? ""),
   amount: payment?.amount ?? 0,
   payment_date: payment?.payment_date ?? new Date().toISOString().slice(0, 10),
   payment_method: payment?.payment_method ?? "cash",
@@ -76,7 +76,8 @@ export function PaymentForm({
             placeholder="Choose project"
             error={errors.project_id?.message}
             {...field}
-            onChange={(v) => field.onChange(v)}
+            value={field.value != null ? String(field.value) : ""}
+            onChange={(v) => field.onChange(v != null ? String(v) : "")}
           />
         )}
       />

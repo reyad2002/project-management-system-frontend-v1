@@ -31,6 +31,7 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
       await updateProject.mutateAsync(payload);
     } else {
       await createProject.mutateAsync(payload);
+      // console.log(payload);
     }
     onClose();
   };

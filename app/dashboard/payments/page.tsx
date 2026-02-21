@@ -50,8 +50,8 @@ export default function PaymentsPage() {
   const { data: clientsData } = useClientsShortList();
   const deletePayment = useDeletePayment();
 
-  const projectOptions = projectsData?.projects?.map((p) => ({ value: p.id, label: p.title })) ?? [];
-  const clientOptions = clientsData?.clients?.map((c) => ({ value: c.id, label: c.name })) ?? [];
+  const projectOptions = projectsData?.projects?.map((p) => ({ value: String(p.id), label: p.title })) ?? [];
+  const clientOptions = clientsData?.clients?.map((c) => ({ value: String(c.id), label: c.name })) ?? [];
 
   const pagination = data?.pagination;
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;

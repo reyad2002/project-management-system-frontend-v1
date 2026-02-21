@@ -14,7 +14,11 @@ import { PROJECT_STATUSES } from "@/lib/constants";
 import { ProjectFormModal } from "./ProjectFormModal";
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+  }).format(n);
 }
 
 export default function ProjectsPage() {
@@ -37,7 +41,8 @@ export default function ProjectsPage() {
   const { data: clientsData } = useClientsShortList();
   const deleteProject = useDeleteProject();
 
-  const clientOptions = clientsData?.clients?.map((c) => ({ value: c.id, label: c.name })) ?? [];
+  const clientOptions =
+    clientsData?.clients?.map((c) => ({ value: String(c.id), label: c.name })) ?? [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,16 +51,25 @@ export default function ProjectsPage() {
   };
 
   const pagination = data?.pagination;
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;
+  const totalPages = pagination
+    ? Math.ceil(pagination.total / pagination.limit)
+    : 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Projects</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Projects
+          </h1>
           <p className="mt-1 text-[var(--muted)]">Manage your projects</p>
         </div>
-        <Button onClick={() => { setEditingId(null); setModalOpen(true); }}>
+        <Button
+          onClick={() => {
+            setEditingId(null);
+            setModalOpen(true);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add project
         </Button>
@@ -63,7 +77,10 @@ export default function ProjectsPage() {
 
       <Card>
         <CardHeader>
-          <form onSubmit={handleSearch} className="flex flex-wrap items-end gap-2">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-wrap items-end gap-2"
+          >
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
               <Input
@@ -77,15 +94,29 @@ export default function ProjectsPage() {
               label="Client"
               options={[{ value: "", label: "All" }, ...clientOptions]}
               value={clientId}
-              onChange={(e) => { setClientId(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setClientId(e.target.value);
+                setPage(1);
+              }}
             />
             <Select
               label="Status"
-              options={[{ value: "", label: "All" }, ...PROJECT_STATUSES.map((s) => ({ value: s.value, label: s.label }))]}
+              options={[
+                { value: "", label: "All" },
+                ...PROJECT_STATUSES.map((s) => ({
+                  value: s.value,
+                  label: s.label,
+                })),
+              ]}
               value={status}
-              onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
             />
-            <Button type="submit" variant="secondary">Search</Button>
+            <Button type="submit" variant="secondary">
+              Search
+            </Button>
           </form>
         </CardHeader>
         <CardContent>
@@ -94,7 +125,9 @@ export default function ProjectsPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
             </div>
           ) : !data?.projects?.length ? (
-            <p className="py-8 text-center text-[var(--muted)]">No projects found.</p>
+            <p className="py-8 text-center text-[var(--muted)]">
+              No projects found.
+            </p>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -110,10 +143,17 @@ export default function ProjectsPage() {
                   </thead>
                   <tbody>
                     {data.projects.map((p) => (
-                      <tr key={p.id} className="border-b border-[var(--border)] last:border-0">
+                      <tr
+                        key={p.id}
+                        className="border-b border-[var(--border)] last:border-0"
+                      >
                         <td className="py-3 font-medium">{p.title}</td>
-                        <td className="py-3 capitalize">{p.status.replace("_", " ")}</td>
-                        <td className="py-3">{p.price != null ? formatMoney(p.price) : "—"}</td>
+                        <td className="py-3 capitalize">
+                          {p.status.replace("_", " ")}
+                        </td>
+                        <td className="py-3">
+                          {p.price != null ? formatMoney(p.price) : "—"}
+                        </td>
                         <td className="py-3">{p.due_date ?? "—"}</td>
                         <td className="py-3 text-right">
                           <Link href={`/dashboard/projects/${p.id}`}>
@@ -124,7 +164,10 @@ export default function ProjectsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => { setEditingId(p.id); setModalOpen(true); }}
+                            onClick={() => {
+                              setEditingId(p.id);
+                              setModalOpen(true);
+                            }}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -132,7 +175,8 @@ export default function ProjectsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              if (confirm("Delete this project?")) deleteProject.mutate(p.id);
+                              if (confirm("Delete this project?"))
+                                deleteProject.mutate(p.id);
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
@@ -149,8 +193,22 @@ export default function ProjectsPage() {
                     Page {page} of {totalPages} ({pagination?.total} total)
                   </p>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => p - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
                   </div>
                 </div>
               )}
@@ -161,7 +219,10 @@ export default function ProjectsPage() {
 
       <ProjectFormModal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setEditingId(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingId(null);
+        }}
         projectId={editingId}
         clientOptions={clientOptions}
       />
