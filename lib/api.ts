@@ -1,6 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { API_BASE, TOKEN_KEY } from "./config";
+import { publishAppError } from "./error-bus";
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -19,6 +20,8 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && typeof window !== "undefined") {
       Cookies.remove(TOKEN_KEY);
       window.location.href = "/login";
+    } else {
+      publishAppError(err);
     }
     return Promise.reject(err);
   },

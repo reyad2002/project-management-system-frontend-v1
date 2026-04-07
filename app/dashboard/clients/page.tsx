@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { ClientFormModal } from "./ClientFormModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function ClientsPage() {
   const [page, setPage] = useState(1);
@@ -15,8 +16,13 @@ export default function ClientsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
 
-  const { data, isLoading } = useClients({ page, limit: 10, q: q || undefined });
+  const { data, isLoading } = useClients({
+    page,
+    limit: 10,
+    q: q || undefined,
+  });
   const deleteClient = useDeleteClient();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -26,16 +32,25 @@ export default function ClientsPage() {
   };
 
   const pagination = data?.pagination;
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;
+  const totalPages = pagination
+    ? Math.ceil(pagination.total / pagination.limit)
+    : 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Clients</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Clients
+          </h1>
           <p className="mt-1 text-[var(--muted)]">Manage your clients</p>
         </div>
-        <Button onClick={() => { setEditingId(null); setModalOpen(true); }}>
+        <Button
+          onClick={() => {
+            setEditingId(null);
+            setModalOpen(true);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add client
         </Button>
@@ -53,7 +68,9 @@ export default function ClientsPage() {
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
-            <Button type="submit" variant="secondary">Search</Button>
+            <Button type="submit" variant="secondary">
+              Search
+            </Button>
           </form>
         </CardHeader>
         <CardContent>
@@ -62,7 +79,9 @@ export default function ClientsPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
             </div>
           ) : !data?.clients?.length ? (
-            <p className="py-8 text-center text-[var(--muted)]">No clients found.</p>
+            <p className="py-8 text-center text-[var(--muted)]">
+              No clients found.
+            </p>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -77,7 +96,10 @@ export default function ClientsPage() {
                   </thead>
                   <tbody>
                     {data.clients.map((c) => (
-                      <tr key={c.id} className="border-b border-[var(--border)] last:border-0">
+                      <tr
+                        key={c.id}
+                        className="border-b border-[var(--border)] last:border-0"
+                      >
                         <td className="py-3 font-medium">{c.name}</td>
                         <td className="py-3">{c.email ?? "—"}</td>
                         <td className="py-3">{c.phone ?? "—"}</td>
@@ -90,16 +112,17 @@ export default function ClientsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => { setEditingId(c.id); setModalOpen(true); }}
+                            onClick={() => {
+                              setEditingId(c.id);
+                              setModalOpen(true);
+                            }}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              if (confirm("Delete this client?")) deleteClient.mutate(c.id);
-                            }}
+                            onClick={() => setDeletingClientId(c.id)}
                           >
                             <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
                           </Button>
@@ -141,8 +164,26 @@ export default function ClientsPage() {
 
       <ClientFormModal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setEditingId(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingId(null);
+        }}
         clientId={editingId}
+      />
+
+      <ConfirmDialog
+        open={!!deletingClientId}
+        title="Delete client?"
+        description="This action cannot be undone."
+        confirmText="Delete"
+        isLoading={deleteClient.isPending}
+        onClose={() => setDeletingClientId(null)}
+        onConfirm={() => {
+          if (!deletingClientId) return;
+          deleteClient.mutate(deletingClientId, {
+            onSuccess: () => setDeletingClientId(null),
+          });
+        }}
       />
     </div>
   );

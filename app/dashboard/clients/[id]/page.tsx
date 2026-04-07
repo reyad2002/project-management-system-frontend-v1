@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/Button";
 import { ArrowLeft, Mail, Phone, MapPin, FileText, DollarSign } from "lucide-react";
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-EG", {
+    style: "currency",
+    currency: "EGP",
+    minimumFractionDigits: 0,
+  }).format(n);
 }
 
 export default function ClientDetailPage() {

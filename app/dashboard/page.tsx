@@ -40,9 +40,9 @@ function StatCard({
 }
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-EG", {
     style: "currency",
-    currency: "USD",
+    currency: "EGP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(n);

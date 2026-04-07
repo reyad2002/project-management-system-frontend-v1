@@ -7,11 +7,24 @@ import { useProject, useProjectPayments } from "@/hooks/use-projects";
 import { usePhases, useDeletePhase } from "@/hooks/use-phases";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, Calendar, DollarSign, Plus, Pencil, Trash2, Layers } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  DollarSign,
+  Plus,
+  Pencil,
+  Trash2,
+  Layers,
+} from "lucide-react";
 import { PhaseFormModal } from "./PhaseFormModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-EG", {
+    style: "currency",
+    currency: "EGP",
+    minimumFractionDigits: 0,
+  }).format(n);
 }
 
 export default function ProjectDetailPage() {
@@ -24,6 +37,7 @@ export default function ProjectDetailPage() {
   const deletePhase = useDeletePhase(id);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
   const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
+  const [deletingPhaseId, setDeletingPhaseId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -37,7 +51,12 @@ export default function ProjectDetailPage() {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
         Project not found.
-        <Button variant="outline" size="sm" className="ml-4" onClick={() => router.push("/dashboard/projects")}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-4"
+          onClick={() => router.push("/dashboard/projects")}
+        >
           Back to list
         </Button>
       </div>
@@ -63,10 +82,14 @@ export default function ProjectDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>{project.title}</CardTitle>
-          <p className="mt-1 text-sm capitalize text-[var(--muted)]">{project.status.replace("_", " ")}</p>
+          <p className="mt-1 text-sm capitalize text-[var(--muted)]">
+            {project.status.replace("_", " ")}
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {project.details && <p className="text-[var(--foreground)]">{project.details}</p>}
+          {project.details && (
+            <p className="text-[var(--foreground)]">{project.details}</p>
+          )}
           <div className="flex flex-wrap gap-4 text-sm">
             {project.start_date && (
               <span className="flex items-center gap-2">
@@ -94,7 +117,8 @@ export default function ProjectDetailPage() {
         <CardHeader>
           <CardTitle>Payments</CardTitle>
           <p className="text-sm text-[var(--muted)]">
-            Total paid: {formatMoney(totalPaid)} · Remaining: {formatMoney(remaining)}
+            Total paid: {formatMoney(totalPaid)} · Remaining:{" "}
+            {formatMoney(remaining)}
           </p>
         </CardHeader>
         <CardContent>
@@ -103,15 +127,22 @@ export default function ProjectDetailPage() {
           ) : (
             <ul className="space-y-2">
               {payments.map((p) => (
-                <li key={p.id} className="flex justify-between rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm">
-                  <span>{p.payment_date} · {p.payment_method.replace("_", " ")}</span>
+                <li
+                  key={p.id}
+                  className="flex justify-between rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
+                >
+                  <span>
+                    {p.payment_date} · {p.payment_method.replace("_", " ")}
+                  </span>
                   <span className="font-medium">{formatMoney(p.amount)}</span>
                 </li>
               ))}
             </ul>
           )}
           <Link href={`/dashboard/payments?project_id=${project.id}`}>
-            <Button variant="secondary" size="sm" className="mt-4">View all payments</Button>
+            <Button variant="secondary" size="sm" className="mt-4">
+              View all payments
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -146,9 +177,13 @@ export default function ProjectDetailPage() {
                   <div>
                     <span className="font-medium">{ph.title}</span>
                     <span className="mx-2 text-[var(--muted)]">·</span>
-                    <span>{ph.start_date} – {ph.end_date}</span>
+                    <span>
+                      {ph.start_date} – {ph.end_date}
+                    </span>
                     <span className="mx-2 text-[var(--muted)]">·</span>
-                    <span className="font-medium">{formatMoney(ph.amount)}</span>
+                    <span className="font-medium">
+                      {formatMoney(ph.amount)}
+                    </span>
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -164,9 +199,7 @@ export default function ProjectDetailPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        if (confirm("Delete this phase?")) deletePhase.mutate(ph.id);
-                      }}
+                      onClick={() => setDeletingPhaseId(ph.id)}
                     >
                       <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
                     </Button>
@@ -186,6 +219,21 @@ export default function ProjectDetailPage() {
         }}
         projectId={id}
         phaseId={editingPhaseId}
+      />
+
+      <ConfirmDialog
+        open={!!deletingPhaseId}
+        title="Delete phase?"
+        description="This action cannot be undone."
+        confirmText="Delete"
+        isLoading={deletePhase.isPending}
+        onClose={() => setDeletingPhaseId(null)}
+        onConfirm={() => {
+          if (!deletingPhaseId) return;
+          deletePhase.mutate(deletingPhaseId, {
+            onSuccess: () => setDeletingPhaseId(null),
+          });
+        }}
       />
     </div>
   );

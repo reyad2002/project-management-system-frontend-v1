@@ -12,11 +12,12 @@ import { Select } from "@/components/ui/Select";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { PROJECT_STATUSES } from "@/lib/constants";
 import { ProjectFormModal } from "./ProjectFormModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 function formatMoney(n: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-EG", {
     style: "currency",
-    currency: "USD",
+    currency: "EGP",
     minimumFractionDigits: 0,
   }).format(n);
 }
@@ -30,6 +31,9 @@ export default function ProjectsPage() {
   const [status, setStatus] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
+    null,
+  );
 
   const { data, isLoading } = useProjects({
     page,
@@ -42,7 +46,10 @@ export default function ProjectsPage() {
   const deleteProject = useDeleteProject();
 
   const clientOptions =
-    clientsData?.clients?.map((c) => ({ value: String(c.id), label: c.name })) ?? [];
+    clientsData?.clients?.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+    })) ?? [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,10 +181,7 @@ export default function ProjectsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              if (confirm("Delete this project?"))
-                                deleteProject.mutate(p.id);
-                            }}
+                            onClick={() => setDeletingProjectId(p.id)}
                           >
                             <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
                           </Button>
@@ -225,6 +229,21 @@ export default function ProjectsPage() {
         }}
         projectId={editingId}
         clientOptions={clientOptions}
+      />
+
+      <ConfirmDialog
+        open={!!deletingProjectId}
+        title="Delete project?"
+        description="This action cannot be undone."
+        confirmText="Delete"
+        isLoading={deleteProject.isPending}
+        onClose={() => setDeletingProjectId(null)}
+        onConfirm={() => {
+          if (!deletingProjectId) return;
+          deleteProject.mutate(deletingProjectId, {
+            onSuccess: () => setDeletingProjectId(null),
+          });
+        }}
       />
     </div>
   );
