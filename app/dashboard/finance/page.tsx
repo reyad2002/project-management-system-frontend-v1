@@ -32,9 +32,7 @@ export default function FinancePage() {
   const [toDate, setToDate] = useState("");
 
   const params =
-    fromDate && toDate
-      ? { from_date: fromDate, to_date: toDate }
-      : undefined;
+    fromDate && toDate ? { from_date: fromDate, to_date: toDate } : undefined;
   const { data, isLoading, error } = useFinancialStats(params);
 
   if (isLoading) {
@@ -48,7 +46,8 @@ export default function FinancePage() {
   if (error || !data) {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
-        Failed to load financial data. Make sure the API is running at the configured URL.
+        Failed to load financial data. Make sure the API is running at the
+        configured URL.
       </div>
     );
   }
@@ -57,7 +56,9 @@ export default function FinancePage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Finance</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            Finance
+          </h1>
           <p className="mt-1 text-[var(--muted)]">
             Revenue, expenses, and profit overview
           </p>
@@ -101,12 +102,15 @@ export default function FinancePage() {
         <Card>
           <CardContent className="flex items-start justify-between p-6">
             <div>
-              <p className="text-sm font-medium text-[var(--muted)]">Total expenses</p>
+              <p className="text-sm font-medium text-[var(--muted)]">
+                Total expenses
+              </p>
               <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
                 {formatMoney(data.totalExpenses)}
               </p>
               <p className="mt-0.5 text-xs text-[var(--muted)]">
-                Direct {formatMoney(data.directExpenses)} · Operational {formatMoney(data.operationalExpenses)}
+                Direct {formatMoney(data.directExpenses)} · Operational{" "}
+                {formatMoney(data.operationalExpenses)}
               </p>
             </div>
             <div className="rounded-lg bg-amber-100 p-3 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
@@ -117,7 +121,9 @@ export default function FinancePage() {
         <Card>
           <CardContent className="flex items-start justify-between p-6">
             <div>
-              <p className="text-sm font-medium text-[var(--muted)]">Gross profit</p>
+              <p className="text-sm font-medium text-[var(--muted)]">
+                Gross profit
+              </p>
               <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
                 {formatMoney(data.grossProfit)}
               </p>
@@ -133,7 +139,9 @@ export default function FinancePage() {
         <Card>
           <CardContent className="flex items-start justify-between p-6">
             <div>
-              <p className="text-sm font-medium text-[var(--muted)]">Net profit</p>
+              <p className="text-sm font-medium text-[var(--muted)]">
+                Net profit
+              </p>
               <p className="mt-1 text-2xl font-semibold text-[var(--primary)]">
                 {formatMoney(data.netProfit)}
               </p>
@@ -160,11 +168,15 @@ export default function FinancePage() {
           <CardContent className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted)]">Gross margin</span>
-              <span className="font-medium">{formatPercent(data.grossMargin.percent)}</span>
+              <span className="font-medium">
+                {formatPercent(data.grossMargin.percent)}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted)]">Operating margin</span>
-              <span className="font-medium">{formatPercent(data.operatingMargin.percent)}</span>
+              <span className="font-medium">
+                {formatPercent(data.operatingMargin.percent)}
+              </span>
             </div>
             <div className="flex justify-between border-t border-[var(--border)] pt-3 text-sm">
               <span className="text-[var(--muted)]">Profit margin</span>
@@ -190,18 +202,28 @@ export default function FinancePage() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted)]">− Direct expenses</span>
-              <span className="font-medium">{formatMoney(data.directExpenses)}</span>
+              <span className="font-medium">
+                {formatMoney(data.directExpenses)}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted)]">− Operational expenses</span>
-              <span className="font-medium">{formatMoney(data.operationalExpenses)}</span>
+              <span className="text-[var(--muted)]">
+                − Operational expenses
+              </span>
+              <span className="font-medium">
+                {formatMoney(data.operationalExpenses)}
+              </span>
             </div>
             <div className="flex justify-between border-t border-[var(--border)] pt-3 text-sm">
               <span className="text-[var(--muted)]">Operating income</span>
-              <span className="font-medium">{formatMoney(data.operatingIncome)}</span>
+              <span className="font-medium">
+                {formatMoney(data.operatingIncome)}
+              </span>
             </div>
             <div className="flex justify-between border-t border-[var(--border)] pt-2 text-sm">
-              <span className="font-medium text-[var(--foreground)]">Net profit</span>
+              <span className="font-medium text-[var(--foreground)]">
+                Net profit
+              </span>
               <span className="font-semibold text-[var(--primary)]">
                 {formatMoney(data.netProfit)}
               </span>

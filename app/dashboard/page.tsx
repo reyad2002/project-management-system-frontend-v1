@@ -28,7 +28,9 @@ function StatCard({
       <CardContent className="flex items-start justify-between p-6">
         <div>
           <p className="text-sm font-medium text-[var(--muted)]">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{value}</p>
+          <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+            {value}
+          </p>
           {sub && <p className="mt-0.5 text-xs text-[var(--muted)]">{sub}</p>}
         </div>
         <div className="rounded-lg bg-[var(--accent-muted)] p-3 text-[var(--primary)]">
@@ -62,23 +64,34 @@ export default function DashboardPage() {
   if (error || !data) {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
-        Failed to load dashboard. Make sure the API is running at the configured URL.
+        Failed to load dashboard. Make sure the API is running at the configured
+        URL.
       </div>
     );
   }
 
   const { overview, financial, projectsByStatus } = data;
+  const outstandingReceivables =
+    overview.totalProjectValue - overview.totalPaymentsReceived;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
-        <p className="mt-1 text-[var(--muted)]">Overview of your projects and finances</p>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-[var(--muted)]">
+          Overview of your projects and finances
+        </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard title="Clients" value={overview.totalClients} icon={Users} />
-        <StatCard title="Projects" value={overview.totalProjects} icon={FolderKanban} />
+        <StatCard
+          title="Projects"
+          value={overview.totalProjects}
+          icon={FolderKanban}
+        />
         <StatCard
           title="Total project value"
           value={formatMoney(overview.totalProjectValue)}
@@ -89,6 +102,12 @@ export default function DashboardPage() {
           value={formatMoney(overview.totalPaymentsReceived)}
           sub={`${overview.totalPaymentsCount} payments`}
           icon={CreditCard}
+        />
+        <StatCard
+          title="Outstanding receivables"
+          value={formatMoney(outstandingReceivables)}
+          // sub="Total project value - Payments received"
+          icon={TrendingUp}
         />
       </div>
 
@@ -107,7 +126,9 @@ export default function DashboardPage() {
                   key={status}
                   className="flex justify-between rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
                 >
-                  <span className="capitalize text-[var(--foreground)]">{status.replace("_", " ")}</span>
+                  <span className="capitalize text-[var(--foreground)]">
+                    {status.replace("_", " ")}
+                  </span>
                   <span className="font-medium">{count}</span>
                 </li>
               ))}
@@ -125,16 +146,21 @@ export default function DashboardPage() {
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted)]">Revenue</span>
-              <span className="font-medium">{formatMoney(financial.totalRevenue)}</span>
+              <span className="font-medium">
+                {formatMoney(financial.totalRevenue)}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--muted)]">Total expenses</span>
-              <span className="font-medium">{formatMoney(financial.totalExpenses)}</span>
+              <span className="font-medium">
+                {formatMoney(financial.totalExpenses)}
+              </span>
             </div>
             <div className="flex justify-between border-t border-[var(--border)] pt-3 text-sm">
               <span className="text-[var(--muted)]">Net profit</span>
               <span className="font-semibold text-[var(--primary)]">
-                {formatMoney(financial.netProfit)} ({financial.profitMargin.percent}%)
+                {formatMoney(financial.netProfit)} (
+                {financial.profitMargin.percent}%)
               </span>
             </div>
           </CardContent>
@@ -150,7 +176,10 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <p className="text-lg font-semibold text-[var(--foreground)]">
-            {formatMoney(overview.totalExpenses)} <span className="text-sm font-normal text-[var(--muted)]">({overview.totalExpensesCount} entries)</span>
+            {formatMoney(overview.totalExpenses)}{" "}
+            <span className="text-sm font-normal text-[var(--muted)]">
+              ({overview.totalExpensesCount} entries)
+            </span>
           </p>
         </CardContent>
       </Card>

@@ -5,7 +5,14 @@ import Link from "next/link";
 import { useClient, useClientPaymentSummary } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, Mail, Phone, MapPin, FileText, DollarSign } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  DollarSign,
+} from "lucide-react";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-EG", {
@@ -34,7 +41,12 @@ export default function ClientDetailPage() {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
         Client not found.
-        <Button variant="outline" size="sm" className="ml-4" onClick={() => router.push("/dashboard/clients")}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-4"
+          onClick={() => router.push("/dashboard/clients")}
+        >
           Back to list
         </Button>
       </div>
@@ -60,7 +72,10 @@ export default function ClientDetailPage() {
           {client.email && (
             <div className="flex items-center gap-2 text-[var(--foreground)]">
               <Mail className="h-4 w-4 text-[var(--muted)]" />
-              <a href={`mailto:${client.email}`} className="text-[var(--primary)] hover:underline">
+              <a
+                href={`mailto:${client.email}`}
+                className="text-[var(--primary)] hover:underline"
+              >
                 {client.email}
               </a>
             </div>
@@ -81,8 +96,18 @@ export default function ClientDetailPage() {
             <div className="flex items-start gap-2 border-t border-[var(--border)] pt-4">
               <FileText className="h-4 w-4 shrink-0 text-[var(--muted)]" />
               <div className="space-y-1 text-sm">
-                {client.notes && <p><span className="text-[var(--muted)]">Notes:</span> {client.notes}</p>}
-                {client.feedback && <p><span className="text-[var(--muted)]">Feedback:</span> {client.feedback}</p>}
+                {client.notes && (
+                  <p>
+                    <span className="text-[var(--muted)]">Notes:</span>{" "}
+                    {client.notes}
+                  </p>
+                )}
+                {client.feedback && (
+                  <p>
+                    <span className="text-[var(--muted)]">Feedback:</span>{" "}
+                    {client.feedback}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -100,15 +125,21 @@ export default function ClientDetailPage() {
           <CardContent className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="text-sm text-[var(--muted)]">Total amount to pay</p>
-              <p className="text-lg font-semibold">{formatMoney(paymentSummary.total_amount_to_pay)}</p>
+              <p className="text-lg font-semibold">
+                {formatMoney(paymentSummary.total_amount_to_pay)}
+              </p>
             </div>
             <div>
               <p className="text-sm text-[var(--muted)]">Amount paid</p>
-              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{formatMoney(paymentSummary.amount_paid)}</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                {formatMoney(paymentSummary.amount_paid)}
+              </p>
             </div>
             <div>
               <p className="text-sm text-[var(--muted)]">Remaining</p>
-              <p className="text-lg font-semibold">{formatMoney(paymentSummary.remaining)}</p>
+              <p className="text-lg font-semibold">
+                {formatMoney(paymentSummary.remaining)}
+              </p>
             </div>
           </CardContent>
         </Card>
