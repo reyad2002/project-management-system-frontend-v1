@@ -21,13 +21,16 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(err);
-  }
+  },
 );
 
 // Auth
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{ user: User; token: string }>("/api/auth/login", { email, password }),
+    api.post<{ user: User; token: string }>("/api/auth/login", {
+      email,
+      password,
+    }),
   logout: () => api.post("/api/auth/logout"),
   me: () => api.get<User>("/api/auth/me"),
 };
@@ -35,29 +38,52 @@ export const authApi = {
 // Clients
 export const clientsApi = {
   list: (params?: { page?: number; limit?: number; q?: string }) =>
-    api.get<{ clients: Client[]; pagination: Pagination }>("/api/clients", { params }),
-  shortList: () => api.get<{ clients: { id: string; name: string }[] }>("/api/clients/shortList"),
+    api.get<{ clients: Client[]; pagination: Pagination }>("/api/clients", {
+      params,
+    }),
+  shortList: () =>
+    api.get<{ clients: { id: string; name: string }[] }>(
+      "/api/clients/shortList",
+    ),
   get: (id: string) => api.get<Client>(`/api/clients/${id}`),
   getPaymentSummary: (id: string) =>
     api.get<ClientPaymentSummary>(`/api/clients/${id}/payment-summary`),
   create: (data: CreateClientInput) => api.post<Client>("/api/clients", data),
-  update: (id: string, data: Partial<CreateClientInput>) => api.put<Client>(`/api/clients/${id}`, data),
+  update: (id: string, data: Partial<CreateClientInput>) =>
+    api.put<Client>(`/api/clients/${id}`, data),
   delete: (id: string) => api.delete(`/api/clients/${id}`),
 };
 
 // Projects
 export const projectsApi = {
-  list: (params?: { page?: number; limit?: number; client_id?: string; status?: string; q?: string }) =>
-    api.get<{ projects: Project[]; pagination: Pagination }>("/api/projects", { params }),
-  shortList: () => api.get<{ projects: { id: string; title: string }[] }>("/api/projects/shortList"),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    client_id?: string;
+    status?: string;
+    q?: string;
+  }) =>
+    api.get<{ projects: Project[]; pagination: Pagination }>("/api/projects", {
+      params,
+    }),
+  shortList: () =>
+    api.get<{ projects: { id: string; title: string }[] }>(
+      "/api/projects/shortList",
+    ),
   get: (id: string) => api.get<Project>(`/api/projects/${id}`),
-  create: (data: CreateProjectInput) => api.post<Project>("/api/projects", data),
-  update: (id: string, data: Partial<CreateProjectInput>) => api.put<Project>(`/api/projects/${id}`, data),
+  create: (data: CreateProjectInput) =>
+    api.post<Project>("/api/projects", data),
+  update: (id: string, data: Partial<CreateProjectInput>) =>
+    api.put<Project>(`/api/projects/${id}`, data),
   delete: (id: string) => api.delete(`/api/projects/${id}`),
-  payments: (id: string) => api.get<{ payments: Payment[] }>(`/api/projects/${id}/payments`),
+  payments: (id: string) =>
+    api.get<{ payments: Payment[] }>(`/api/projects/${id}/payments`),
   phases: {
     list: (projectId: string, params?: { page?: number; limit?: number }) =>
-      api.get<{ phases: Phase[]; pagination: Pagination }>(`/api/projects/${projectId}/phases`, { params }),
+      api.get<{ phases: Phase[]; pagination: Pagination }>(
+        `/api/projects/${projectId}/phases`,
+        { params },
+      ),
     get: (projectId: string, phaseId: string) =>
       api.get<Phase>(`/api/projects/${projectId}/phases/${phaseId}`),
     create: (projectId: string, data: CreatePhaseInput) =>
@@ -71,21 +97,43 @@ export const projectsApi = {
 
 // Payments
 export const paymentsApi = {
-  list: (params?: { page?: number; limit?: number; project_id?: string; client_id?: string; from_date?: string; to_date?: string }) =>
-    api.get<{ payments: Payment[]; pagination: Pagination }>("/api/payments", { params }),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    project_id?: string;
+    client_id?: string;
+    from_date?: string;
+    to_date?: string;
+  }) =>
+    api.get<{ payments: Payment[]; pagination: Pagination }>("/api/payments", {
+      params,
+    }),
   get: (id: string) => api.get<Payment>(`/api/payments/${id}`),
-  create: (data: CreatePaymentInput) => api.post<Payment>("/api/payments", data),
-  update: (id: string, data: Partial<CreatePaymentInput>) => api.put<Payment>(`/api/payments/${id}`, data),
+  create: (data: CreatePaymentInput) =>
+    api.post<Payment>("/api/payments", data),
+  update: (id: string, data: Partial<CreatePaymentInput>) =>
+    api.put<Payment>(`/api/payments/${id}`, data),
   delete: (id: string) => api.delete(`/api/payments/${id}`),
 };
 
 // Expenses
 export const expensesApi = {
-  list: (params?: { page?: number; limit?: number; type?: string; from_date?: string; to_date?: string; q?: string }) =>
-    api.get<{ expenses: Expense[]; pagination: Pagination }>("/api/expenses", { params }),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    from_date?: string;
+    to_date?: string;
+    q?: string;
+  }) =>
+    api.get<{ expenses: Expense[]; pagination: Pagination }>("/api/expenses", {
+      params,
+    }),
   get: (id: string) => api.get<Expense>(`/api/expenses/${id}`),
-  create: (data: CreateExpenseInput) => api.post<Expense>("/api/expenses", data),
-  update: (id: string, data: Partial<CreateExpenseInput>) => api.put<Expense>(`/api/expenses/${id}`, data),
+  create: (data: CreateExpenseInput) =>
+    api.post<Expense>("/api/expenses", data),
+  update: (id: string, data: Partial<CreateExpenseInput>) =>
+    api.put<Expense>(`/api/expenses/${id}`, data),
   delete: (id: string) => api.delete(`/api/expenses/${id}`),
 };
 
@@ -144,7 +192,12 @@ export interface ClientPaymentSummary {
   remaining: number;
 }
 
-export type ProjectStatus = "draft" | "active" | "on_hold" | "cancelled" | "completed";
+export type ProjectStatus =
+  | "draft"
+  | "active"
+  | "on_hold"
+  | "cancelled"
+  | "completed";
 export interface Project {
   id: string;
   created_at: string;

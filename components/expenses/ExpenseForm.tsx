@@ -12,7 +12,8 @@ import { EXPENSE_TYPES } from "@/lib/constants";
 import type { Expense } from "@/lib/api";
 
 const schema = z.object({
-  amount: z.number().positive("Amount must be positive"),
+  // amount: z.number().positive("Amount must be positive"),
+  amount: z.number(),
   expense_date: z.string().min(1, "Date is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
@@ -73,8 +74,8 @@ export function ExpenseForm({
         <Input
           label="Amount *"
           type="number"
-          step="0.01"
-          min="0.01"
+          // step="0.01"
+          // min="0.01"
           error={errors.amount?.message}
           {...register("amount", { valueAsNumber: true })}
         />
