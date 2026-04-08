@@ -66,10 +66,8 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            Projects
-          </h1>
-          <p className="mt-1 text-[var(--muted)]">Manage your projects</p>
+          <h1 className="text-2xl font-bold text-foreground">Projects</h1>
+          <p className="mt-1 text-(--muted)">Manage your projects</p>
         </div>
         <Button
           onClick={() => {
@@ -88,8 +86,8 @@ export default function ProjectsPage() {
             onSubmit={handleSearch}
             className="flex flex-wrap items-end gap-2"
           >
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
+            <div className="relative flex-1 min-w-50">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
               <Input
                 className="pl-9"
                 placeholder="Search title or details..."
@@ -129,62 +127,78 @@ export default function ProjectsPage() {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
             </div>
           ) : !data?.projects?.length ? (
-            <p className="py-8 text-center text-[var(--muted)]">
+            <p className="py-8 text-center text-(--muted)">
               No projects found.
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-                      <th className="pb-3 font-medium">Title</th>
-                      <th className="pb-3 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Price</th>
-                      <th className="pb-3 font-medium">Due date</th>
-                      <th className="pb-3 font-medium text-right">Actions</th>
+                  <thead className="bg-(--muted-bg)">
+                    <tr className="text-left text-(--muted)">
+                      <th className="px-4 py-3 font-medium">Title</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium">Price</th>
+                      <th className="px-4 py-3 font-medium">Due date</th>
+                      <th className="px-4 py-3 font-medium text-right">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.projects.map((p) => (
+                    {data.projects.map((p, index) => (
                       <tr
                         key={p.id}
-                        className="border-b border-[var(--border)] last:border-0"
+                        className={`border-t border-(--card-border) ${
+                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
+                        } transition-colors hover:bg-sky-50/40`}
                       >
-                        <td className="py-3 font-medium">{p.title}</td>
-                        <td className="py-3 capitalize">
+                        <td className="px-4 py-3 font-medium text-foreground">
+                          {p.title}
+                        </td>
+                        <td className="px-4 py-3 capitalize text-(--muted)">
                           {p.status.replace("_", " ")}
                         </td>
-                        <td className="py-3">
+                        <td className="px-4 py-3 text-(--muted)">
                           {p.price != null ? formatMoney(p.price) : "—"}
                         </td>
-                        <td className="py-3">{p.due_date ?? "—"}</td>
-                        <td className="py-3 text-right">
-                          <Link href={`/dashboard/projects/${p.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
+                        <td className="px-4 py-3 text-(--muted)">
+                          {p.due_date ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-1">
+                            <Link href={`/dashboard/projects/${p.id}`}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                              onClick={() => {
+                                setEditingId(p.id);
+                                setModalOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
                             </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingId(p.id);
-                              setModalOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeletingProjectId(p.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                              onClick={() => setDeletingProjectId(p.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -193,7 +207,7 @@ export default function ProjectsPage() {
               </div>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className="text-sm text-(--muted)">
                     Page {page} of {totalPages} ({pagination?.total} total)
                   </p>
                   <div className="flex gap-2">

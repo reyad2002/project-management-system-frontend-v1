@@ -78,10 +78,8 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">
-            Payments
-          </h1>
-          <p className="mt-1 text-[var(--muted)]">Track payments received</p>
+          <h1 className="text-2xl font-bold text-foreground">Payments</h1>
+          <p className="mt-1 text-(--muted)">Track payments received</p>
         </div>
         <Button
           onClick={() => {
@@ -141,55 +139,65 @@ export default function PaymentsPage() {
         <CardContent className="pt-0">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
             </div>
           ) : !data?.payments?.length ? (
-            <p className="py-8 text-center text-[var(--muted)]">
+            <p className="py-8 text-center text-(--muted)">
               No payments found.
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-                      <th className="pb-3 font-medium">Date</th>
-                      <th className="pb-3 font-medium">Amount</th>
-                      <th className="pb-3 font-medium">Method</th>
-                      <th className="pb-3 font-medium text-right">Actions</th>
+                  <thead className="bg-(--muted-bg)">
+                    <tr className="text-left text-(--muted)">
+                      <th className="px-4 py-3 font-medium">Date</th>
+                      <th className="px-4 py-3 font-medium">Amount</th>
+                      <th className="px-4 py-3 font-medium">Method</th>
+                      <th className="px-4 py-3 font-medium text-right">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.payments.map((p) => (
+                    {data.payments.map((p, index) => (
                       <tr
                         key={p.id}
-                        className="border-b border-[var(--border)] last:border-0"
+                        className={`border-t border-(--card-border) ${
+                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
+                        } transition-colors hover:bg-sky-50/40`}
                       >
-                        <td className="py-3">{p.payment_date}</td>
-                        <td className="py-3 font-medium">
+                        <td className="px-4 py-3 text-(--muted)">
+                          {p.payment_date}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-foreground">
                           {formatMoney(p.amount)}
                         </td>
-                        <td className="py-3 capitalize">
+                        <td className="px-4 py-3 capitalize text-(--muted)">
                           {p.payment_method.replace("_", " ")}
                         </td>
-                        <td className="py-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingId(p.id);
-                              setModalOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeletingPaymentId(p.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
-                          </Button>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                              onClick={() => {
+                                setEditingId(p.id);
+                                setModalOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                              onClick={() => setDeletingPaymentId(p.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -198,7 +206,7 @@ export default function PaymentsPage() {
               </div>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className="text-sm text-(--muted)">
                     Page {page} of {totalPages} ({pagination?.total} total)
                   </p>
                   <div className="flex gap-2">

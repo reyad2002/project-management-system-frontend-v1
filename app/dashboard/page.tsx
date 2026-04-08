@@ -1,41 +1,38 @@
 "use client";
 
-import { useDashboardStats } from "@/hooks/use-statistics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import {
-  Users,
-  FolderKanban,
-  CreditCard,
-  Receipt,
-  TrendingUp,
-  Wallet,
-  BarChart3,
-} from "lucide-react";
+import { useDashboardStats } from "@/hooks/use-statistics";
+import { BarChart3, Receipt, TrendingUp } from "lucide-react";
 
 function StatCard({
   title,
   value,
   sub,
-  icon: Icon,
+  tone = "primary",
 }: {
   title: string;
   value: string | number;
   sub?: string;
-  icon: React.ElementType;
+  tone?: "primary" | "emerald" | "amber" | "rose" | "sky";
 }) {
+  const toneStyles = {
+    primary: "text-(--primary)",
+    emerald: "text-emerald-700",
+    amber: "text-amber-700",
+    rose: "text-rose-700",
+    sky: "text-sky-700",
+  }[tone];
+
   return (
     <Card>
-      <CardContent className="flex items-start justify-between p-6">
-        <div>
-          <p className="text-sm font-medium text-[var(--muted)]">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
-            {value}
-          </p>
-          {sub && <p className="mt-0.5 text-xs text-[var(--muted)]">{sub}</p>}
-        </div>
-        <div className="rounded-lg bg-[var(--accent-muted)] p-3 text-[var(--primary)]">
-          <Icon className="h-6 w-6" />
-        </div>
+      <CardContent className="p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--muted)">
+          {title}
+        </p>
+        <p className={`mt-2 text-2xl font-bold tracking-tight ${toneStyles}`}>
+          {value}
+        </p>
+        {sub && <p className="mt-1 text-xs text-(--muted)">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -56,14 +53,14 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
+      <div className="rounded-lg border border-(--destructive) bg-red-50 p-4 text-(--destructive)">
         Failed to load dashboard. Make sure the API is running at the configured
         URL.
       </div>
@@ -77,59 +74,61 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--muted)">
           Dashboard
-        </h1>
-        <p className="mt-1 text-[var(--muted)]">
-          Overview of your projects and finances
         </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+          Overview of your projects and finances
+        </h1>
+       
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard title="Clients" value={overview.totalClients} icon={Users} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
-          title="Projects"
-          value={overview.totalProjects}
-          icon={FolderKanban}
+          title="Clients"
+          value={overview.totalClients}
+          tone="primary"
         />
+        <StatCard title="Projects" value={overview.totalProjects} tone="sky" />
         <StatCard
           title="Total project value"
           value={formatMoney(overview.totalProjectValue)}
-          icon={Wallet}
+          tone="emerald"
         />
         <StatCard
           title="Payments received"
           value={formatMoney(overview.totalPaymentsReceived)}
           sub={`${overview.totalPaymentsCount} payments`}
-          icon={CreditCard}
+          tone="amber"
         />
         <StatCard
           title="Outstanding receivables"
           value={formatMoney(outstandingReceivables)}
-          // sub="Total project value - Payments received"
-          icon={TrendingUp}
+          tone="rose"
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-[var(--primary)]" />
+              <BarChart3 className="h-5 w-5 text-(--primary)" />
               Projects by status
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {Object.entries(projectsByStatus).map(([status, count]) => (
                 <li
                   key={status}
-                  className="flex justify-between rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-lg border border-(--card-border) px-4 py-3 text-sm"
                 >
-                  <span className="capitalize text-[var(--foreground)]">
+                  <span className="capitalize text-foreground">
                     {status.replace("_", " ")}
                   </span>
-                  <span className="font-medium">{count}</span>
+                  <span className="text-sm font-semibold text-(--primary)">
+                    {count}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -139,26 +138,26 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-[var(--primary)]" />
+              <TrendingUp className="h-5 w-5 text-(--primary)" />
               Financial summary
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted)]">Revenue</span>
-              <span className="font-medium">
+            <div className="flex items-center justify-between rounded-lg border border-(--card-border) px-4 py-3 text-sm">
+              <span className="font-medium text-(--muted)">Revenue</span>
+              <span className="font-semibold text-emerald-700">
                 {formatMoney(financial.totalRevenue)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--muted)]">Total expenses</span>
-              <span className="font-medium">
+            <div className="flex items-center justify-between rounded-lg border border-(--card-border) px-4 py-3 text-sm">
+              <span className="font-medium text-(--muted)">Total expenses</span>
+              <span className="font-semibold text-rose-700">
                 {formatMoney(financial.totalExpenses)}
               </span>
             </div>
-            <div className="flex justify-between border-t border-[var(--border)] pt-3 text-sm">
-              <span className="text-[var(--muted)]">Net profit</span>
-              <span className="font-semibold text-[var(--primary)]">
+            <div className="flex items-center justify-between rounded-lg border border-(--card-border) px-4 py-3 text-sm">
+              <span className="font-medium text-(--muted)">Net profit</span>
+              <span className="font-semibold text-sky-700">
                 {formatMoney(financial.netProfit)} (
                 {financial.profitMargin.percent}%)
               </span>
@@ -170,14 +169,14 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-[var(--primary)]" />
+            <Receipt className="h-5 w-5 text-(--primary)" />
             Expenses
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-lg font-semibold text-[var(--foreground)]">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
             {formatMoney(overview.totalExpenses)}{" "}
-            <span className="text-sm font-normal text-[var(--muted)]">
+            <span className="text-sm font-normal text-(--muted)">
               ({overview.totalExpensesCount} entries)
             </span>
           </p>
