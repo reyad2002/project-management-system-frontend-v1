@@ -6,6 +6,7 @@ import { useClients, useDeleteClient } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { ClientFormModal } from "./ClientFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -73,79 +74,70 @@ export default function ClientsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Name</Th>
+                <Th>Email</Th>
+                <Th>Phone</Th>
+                <Th align="right">Actions</Th>
+              </TableHead>
+              <TableBody>
+                <TableSkeletonRows columns={4} />
+              </TableBody>
+            </Table>
           ) : !data?.clients?.length ? (
             <p className="py-8 text-center text-(--muted)">No clients found.</p>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
-                <table className="w-full text-sm">
-                  <thead className="bg-(--muted-bg)">
-                    <tr className="text-left text-(--muted)">
-                      <th className="px-4 py-3 font-medium">Name</th>
-                      <th className="px-4 py-3 font-medium">Email</th>
-                      <th className="px-4 py-3 font-medium">Phone</th>
-                      <th className="px-4 py-3 font-medium text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.clients.map((c, index) => (
-                      <tr
-                        key={c.id}
-                        className={`border-t border-(--card-border) ${
-                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
-                        } transition-colors hover:bg-sky-50/40`}
-                      >
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {c.name}
-                        </td>
-                        <td className="px-4 py-3 text-(--muted)">
-                          {c.email ?? "—"}
-                        </td>
-                        <td className="px-4 py-3 text-(--muted)">
-                          {c.phone ?? "—"}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <Link href={`/dashboard/clients/${c.id}`}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-sky-700 hover:bg-sky-50 hover:text-sky-800"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
+              <Table>
+                <TableHead>
+                  <Th>Name</Th>
+                  <Th>Email</Th>
+                  <Th>Phone</Th>
+                  <Th align="right">Actions</Th>
+                </TableHead>
+                <TableBody>
+                  {data.clients.map((c) => (
+                    <TableRow key={c.id}>
+                      <Td className="font-medium text-foreground">{c.name}</Td>
+                      <Td className="text-(--muted)">{c.email ?? "—"}</Td>
+                      <Td className="text-(--muted)">{c.phone ?? "—"}</Td>
+                      <Td align="right">
+                        <div className="inline-flex items-center gap-1">
+                          <Link href={`/dashboard/clients/${c.id}`}>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                              onClick={() => {
-                                setEditingId(c.id);
-                                setModalOpen(true);
-                              }}
+                              className="text-sky-700 hover:bg-sky-50 hover:text-sky-800"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                              onClick={() => setDeletingClientId(c.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                            onClick={() => {
+                              setEditingId(c.id);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                            onClick={() => setDeletingClientId(c.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-(--muted)">

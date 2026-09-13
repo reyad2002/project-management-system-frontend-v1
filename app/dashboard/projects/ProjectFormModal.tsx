@@ -2,6 +2,10 @@
 
 import { useProject, useCreateProject, useUpdateProject } from "@/hooks/use-projects";
 import { ProjectForm, type ProjectFormData } from "@/components/projects/ProjectForm";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+
+const FORM_ID = "project-form";
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -31,7 +35,6 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
       await updateProject.mutateAsync(payload);
     } else {
       await createProject.mutateAsync(payload);
-      // console.log(payload);
     }
     onClose();
   };
@@ -39,24 +42,23 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
   const isLoading = createProject.isPending || updateProject.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => e.key === "Escape" && onClose()} role="button" tabIndex={0} aria-label="Close" />
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl">
-        <div className="sticky top-0 z-10 border-b border-[var(--card-border)] bg-[var(--card)] px-6 py-4">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {projectId ? "Edit project" : "New project"}
-          </h2>
-        </div>
-        <div className="p-6">
-          <ProjectForm
-            project={project ?? undefined}
-            clientOptions={clientOptions}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={projectId ? "Edit project" : "New project"}
+      size="lg"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form={FORM_ID} loading={isLoading}>
+            {projectId ? "Update" : "Create"}
+          </Button>
+        </>
+      }
+    >
+      <ProjectForm project={project ?? undefined} clientOptions={clientOptions} formId={FORM_ID} onSubmit={handleSubmit} />
+    </Modal>
   );
 }

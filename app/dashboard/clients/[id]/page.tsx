@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useClient, useClientPaymentSummary } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { PortalAccessCard } from "@/components/clients/PortalAccessCard";
 import {
   ArrowLeft,
   Mail,
@@ -144,6 +145,8 @@ export default function ClientDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      <PortalAccessCard clientId={client.id} />
 
       <div className="flex gap-2">
         <Link href={`/dashboard/projects?client_id=${client.id}`}>

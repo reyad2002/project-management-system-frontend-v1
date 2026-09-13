@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import type { Client } from "@/lib/api";
@@ -22,9 +21,8 @@ export type ClientFormData = z.infer<typeof schema>;
 
 interface ClientFormProps {
   client?: Client | null;
+  formId: string;
   onSubmit: (data: ClientFormData) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
 }
 
 const defaultEmpty = {
@@ -36,7 +34,7 @@ const defaultEmpty = {
   feedback: "",
 };
 
-export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientFormProps) {
+export function ClientForm({ client, formId, onSubmit }: ClientFormProps) {
   const {
     register,
     handleSubmit,
@@ -63,35 +61,17 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientForm
   }, [client, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
       <div className="grid grid-cols-2 gap-4">
-
-      <Input label="Name *" error={errors.name?.message} {...register("name")} />
-      <Input label="Email" type="email" error={errors.email?.message} {...register("email")} />
+        <Input label="Name *" error={errors.name?.message} {...register("name")} />
+        <Input label="Email" type="email" error={errors.email?.message} {...register("email")} />
       </div>
       <div className="grid grid-cols-2 gap-4">
-
-      <Input label="Phone" error={errors.phone?.message} {...register("phone")} />
-      <Input label="Address" error={errors.address?.message} {...register("address")} />
+        <Input label="Phone" error={errors.phone?.message} {...register("phone")} />
+        <Input label="Address" error={errors.address?.message} {...register("address")} />
       </div>
-     
-
-      
-     
-
       <Textarea label="Notes" error={errors.notes?.message} {...register("notes")} />
-     
       <Textarea label="Feedback" error={errors.feedback?.message} {...register("feedback")} />
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Button type="submit" loading={isLoading}>
-          {client ? "Update" : "Create"}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-      </div>
     </form>
   );
 }

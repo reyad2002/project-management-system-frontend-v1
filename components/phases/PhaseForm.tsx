@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import type { Phase } from "@/lib/api";
@@ -26,9 +25,8 @@ export type PhaseFormData = z.infer<typeof schema>;
 
 interface PhaseFormProps {
   phase?: Phase | null;
+  formId: string;
   onSubmit: (data: PhaseFormData) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
 }
 
 const defaultValues: PhaseFormData = {
@@ -39,12 +37,7 @@ const defaultValues: PhaseFormData = {
   notes: "",
 };
 
-export function PhaseForm({
-  phase,
-  onSubmit,
-  onCancel,
-  isLoading,
-}: PhaseFormProps) {
+export function PhaseForm({ phase, formId, onSubmit }: PhaseFormProps) {
   const {
     register,
     handleSubmit,
@@ -70,7 +63,7 @@ export function PhaseForm({
   }, [phase, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
       <Input
         label="Title *"
         error={errors.title?.message}
@@ -103,16 +96,6 @@ export function PhaseForm({
         error={errors.notes?.message}
         {...register("notes")}
       />
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Button type="submit" loading={isLoading}>
-          {phase ? "Update" : "Create"}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-      </div>
     </form>
   );
 }

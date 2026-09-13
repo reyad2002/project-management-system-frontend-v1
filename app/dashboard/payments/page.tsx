@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { PaymentFormModal } from "./PaymentFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -138,72 +139,63 @@ export default function PaymentsPage() {
         </CardHeader>
         <CardContent className="pt-0">
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Date</Th>
+                <Th>Amount</Th>
+                <Th>Method</Th>
+                <Th align="right">Actions</Th>
+              </TableHead>
+              <TableBody>
+                <TableSkeletonRows columns={4} />
+              </TableBody>
+            </Table>
           ) : !data?.payments?.length ? (
             <p className="py-8 text-center text-(--muted)">
               No payments found.
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
-                <table className="w-full text-sm">
-                  <thead className="bg-(--muted-bg)">
-                    <tr className="text-left text-(--muted)">
-                      <th className="px-4 py-3 font-medium">Date</th>
-                      <th className="px-4 py-3 font-medium">Amount</th>
-                      <th className="px-4 py-3 font-medium">Method</th>
-                      <th className="px-4 py-3 font-medium text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.payments.map((p, index) => (
-                      <tr
-                        key={p.id}
-                        className={`border-t border-(--card-border) ${
-                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
-                        } transition-colors hover:bg-sky-50/40`}
-                      >
-                        <td className="px-4 py-3 text-(--muted)">
-                          {p.payment_date}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {formatMoney(p.amount)}
-                        </td>
-                        <td className="px-4 py-3 capitalize text-(--muted)">
-                          {p.payment_method.replace("_", " ")}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                              onClick={() => {
-                                setEditingId(p.id);
-                                setModalOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                              onClick={() => setDeletingPaymentId(p.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHead>
+                  <Th>Date</Th>
+                  <Th>Amount</Th>
+                  <Th>Method</Th>
+                  <Th align="right">Actions</Th>
+                </TableHead>
+                <TableBody>
+                  {data.payments.map((p) => (
+                    <TableRow key={p.id}>
+                      <Td className="text-(--muted)">{p.payment_date}</Td>
+                      <Td className="font-medium text-foreground">{formatMoney(p.amount)}</Td>
+                      <Td className="capitalize text-(--muted)">{p.payment_method.replace("_", " ")}</Td>
+                      <Td align="right">
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                            onClick={() => {
+                              setEditingId(p.id);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                            onClick={() => setDeletingPaymentId(p.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-(--muted)">

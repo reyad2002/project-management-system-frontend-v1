@@ -5,6 +5,7 @@ import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { EXPENSE_TYPES } from "@/lib/constants";
 import { ExpenseFormModal } from "./ExpenseFormModal";
@@ -81,76 +82,66 @@ export default function ExpensesPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Date</Th>
+                <Th>Title</Th>
+                <Th>Type</Th>
+                <Th>Amount</Th>
+                <Th align="right">Actions</Th>
+              </TableHead>
+              <TableBody>
+                <TableSkeletonRows columns={5} />
+              </TableBody>
+            </Table>
           ) : !data?.expenses?.length ? (
             <p className="py-8 text-center text-(--muted)">
               No expenses found.
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
-                <table className="w-full text-sm">
-                  <thead className="bg-(--muted-bg)">
-                    <tr className="text-left text-(--muted)">
-                      <th className="px-4 py-3 font-medium">Date</th>
-                      <th className="px-4 py-3 font-medium">Title</th>
-                      <th className="px-4 py-3 font-medium">Type</th>
-                      <th className="px-4 py-3 font-medium">Amount</th>
-                      <th className="px-4 py-3 font-medium text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.expenses.map((e, index) => (
-                      <tr
-                        key={e.id}
-                        className={`border-t border-(--card-border) ${
-                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
-                        } transition-colors hover:bg-sky-50/40`}
-                      >
-                        <td className="px-4 py-3 text-(--muted)">
-                          {e.expense_date}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {e.title}
-                        </td>
-                        <td className="px-4 py-3 capitalize text-(--muted)">
-                          {e.type}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {formatMoney(e.amount)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                              onClick={() => {
-                                setEditingId(e.id);
-                                setModalOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                              onClick={() => setDeletingExpenseId(e.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHead>
+                  <Th>Date</Th>
+                  <Th>Title</Th>
+                  <Th>Type</Th>
+                  <Th>Amount</Th>
+                  <Th align="right">Actions</Th>
+                </TableHead>
+                <TableBody>
+                  {data.expenses.map((e) => (
+                    <TableRow key={e.id}>
+                      <Td className="text-(--muted)">{e.expense_date}</Td>
+                      <Td className="font-medium text-foreground">{e.title}</Td>
+                      <Td className="capitalize text-(--muted)">{e.type}</Td>
+                      <Td className="font-medium text-foreground">{formatMoney(e.amount)}</Td>
+                      <Td align="right">
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                            onClick={() => {
+                              setEditingId(e.id);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                            onClick={() => setDeletingExpenseId(e.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-(--muted)">

@@ -19,10 +19,12 @@ export interface CustomSelectProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Adds a type-to-filter search box inside the dropdown — turn on for long option lists (projects, clients, vendors). */
+  searchable?: boolean;
 }
 
 const triggerBase =
-  "flex h-10 w-full items-center justify-between rounded-xl border bg-[var(--card)] px-3 py-2 text-left text-sm text-[var(--foreground)] transition-[border-color,box-shadow] duration-200 outline-none placeholder:text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-60";
+  "flex h-9 w-full items-center justify-between rounded-lg border bg-[var(--card)] px-3 py-1.5 text-left text-sm text-[var(--foreground)] transition-[border-color,box-shadow] duration-200 outline-none placeholder:text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-60";
 const triggerBorder = "border-[var(--border)] hover:border-[var(--muted)] focus:border-[var(--ring)] focus:ring-2 focus:ring-[var(--ring)]/20";
 const triggerError = "border-[var(--destructive)] focus:border-[var(--destructive)] focus:ring-[var(--destructive)]/20";
 
@@ -40,13 +42,16 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
       placeholder = "Select...",
       disabled = false,
       className = "",
+      searchable = false,
     },
     ref
   ) => {
     const [open, setOpen] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [query, setQuery] = useState("");
     const containerRef = useRef<HTMLDivElement>(null);
     const hiddenInputRef = useRef<HTMLInputElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     useImperativeHandle(ref, () => hiddenInputRef.current as HTMLInputElement);
 
@@ -54,11 +59,28 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
     const selectedOption = options.find((o) => o.value === value);
     const displayText = selectedOption ? selectedOption.label : placeholder;
 
+    const filteredOptions =
+      searchable && query.trim()
+        ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
+        : options;
+
     useEffect(() => {
       if (!open) return;
-      const idx = options.findIndex((o) => o.value === value);
+      setQuery("");
+      const idx = filteredOptions.findIndex((o) => o.value === value);
       setFocusedIndex(idx >= 0 ? idx : 0);
-    }, [open, value, options]);
+      if (searchable) {
+        // let the dropdown mount first
+        const t = setTimeout(() => searchInputRef.current?.focus(), 0);
+        return () => clearTimeout(t);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
+
+    useEffect(() => {
+      setFocusedIndex(filteredOptions.length ? 0 : -1);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query]);
 
     useEffect(() => {
       if (!open) return;
@@ -82,7 +104,28 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
       };
     }, [open, onBlur]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const selectFocused = () => {
+      const opt = filteredOptions[focusedIndex];
+      if (!opt) return;
+      onChange?.(opt.value);
+      setOpen(false);
+      onBlur?.();
+    };
+
+    const handleListKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedIndex((i) => (i < filteredOptions.length - 1 ? i + 1 : 0));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedIndex((i) => (i > 0 ? i - 1 : filteredOptions.length - 1));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        selectFocused();
+      }
+    };
+
+    const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
       if (!open) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -90,18 +133,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
         }
         return;
       }
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setFocusedIndex((i) => (i < options.length - 1 ? i + 1 : 0));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setFocusedIndex((i) => (i > 0 ? i - 1 : options.length - 1));
-      } else if (e.key === "Enter" && focusedIndex >= 0 && options[focusedIndex]) {
-        e.preventDefault();
-        onChange?.(options[focusedIndex].value);
-        setOpen(false);
-        onBlur?.();
-      }
+      handleListKeyDown(e);
     };
 
     return (
@@ -110,7 +142,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
           <label
             id={selectId ? `${selectId}-label` : undefined}
             htmlFor={selectId}
-            className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
+            className="mb-1 block text-xs font-medium text-[var(--muted)]"
           >
             {label}
           </label>
@@ -136,7 +168,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
             onBlur={() => {
               if (!open) onBlur?.();
             }}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleTriggerKeyDown}
           >
             <span className="truncate">{displayText}</span>
             <svg
@@ -150,36 +182,55 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
             </svg>
           </button>
           {open && (
-            <ul
-              role="listbox"
-              className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-[var(--border)] bg-[var(--card)] py-1 shadow-lg"
-              onMouseLeave={() => setFocusedIndex(-1)}
-            >
-              {options.map((opt, i) => (
-                <li
-                  key={opt.value}
-                  role="option"
-                  aria-selected={opt.value === value}
-                  className={`cursor-pointer px-3 py-2.5 text-sm transition-colors ${
-                    opt.value === value
-                      ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
-                      : "text-[var(--foreground)] hover:bg-[var(--muted-bg)]"
-                  } ${i === focusedIndex ? "bg-[var(--muted-bg)]" : ""}`}
-                  onMouseEnter={() => setFocusedIndex(i)}
-                  onClick={() => {
-                    onChange?.(opt.value);
-                    setOpen(false);
-                    onBlur?.();
-                  }}
-                >
-                  {opt.label}
-                </li>
-              ))}
-            </ul>
+            <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg">
+              {searchable && (
+                <div className="border-b border-[var(--border)] p-1.5">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={query}
+                    placeholder="Type to search..."
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleListKeyDown}
+                    className="w-full rounded-lg border-0 bg-[var(--muted-bg)] px-2.5 py-1.5 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                  />
+                </div>
+              )}
+              <ul
+                role="listbox"
+                className="max-h-56 overflow-auto py-1"
+                onMouseLeave={() => setFocusedIndex(-1)}
+              >
+                {filteredOptions.length === 0 ? (
+                  <li className="px-3 py-2.5 text-sm text-[var(--muted)]">No matches</li>
+                ) : (
+                  filteredOptions.map((opt, i) => (
+                    <li
+                      key={opt.value}
+                      role="option"
+                      aria-selected={opt.value === value}
+                      className={`cursor-pointer px-3 py-2.5 text-sm transition-colors ${
+                        opt.value === value
+                          ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                          : "text-[var(--foreground)] hover:bg-[var(--muted-bg)]"
+                      } ${i === focusedIndex ? "bg-[var(--muted-bg)]" : ""}`}
+                      onMouseEnter={() => setFocusedIndex(i)}
+                      onClick={() => {
+                        onChange?.(opt.value);
+                        setOpen(false);
+                        onBlur?.();
+                      }}
+                    >
+                      {opt.label}
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
           )}
         </div>
         {error && (
-          <p className="mt-1.5 text-sm text-[var(--destructive)]">{error}</p>
+          <p className="mt-1 text-xs text-[var(--destructive)]">{error}</p>
         )}
       </div>
     );

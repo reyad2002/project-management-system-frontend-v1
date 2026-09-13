@@ -4,11 +4,12 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
-import { EXPENSE_TYPES } from "@/lib/constants";
+import { EXPENSE_TYPES, COST_CATEGORIES } from "@/lib/constants";
+import { useProjectsShortList } from "@/hooks/use-projects";
+import { usePhases } from "@/hooks/use-phases";
 import type { Expense } from "@/lib/api";
 
 const schema = z.object({
@@ -18,15 +19,27 @@ const schema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   type: z.enum(["direct", "operational"]),
+  project_id: z.string().optional(),
+  phase_id: z.string().optional(),
+  cost_category: z.enum([
+    "labor",
+    "materials",
+    "subcontractor",
+    "software",
+    "travel",
+    "marketing",
+    "rent",
+    "utilities",
+    "other",
+  ]),
 });
 
 export type ExpenseFormData = z.infer<typeof schema>;
 
 interface ExpenseFormProps {
   expense?: Expense | null;
+  formId: string;
   onSubmit: (data: ExpenseFormData) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
 }
 
 const defaultEmpty: ExpenseFormData = {
@@ -35,24 +48,41 @@ const defaultEmpty: ExpenseFormData = {
   title: "",
   description: "",
   type: "direct",
+  project_id: "",
+  phase_id: "",
+  cost_category: "other",
 };
 
 export function ExpenseForm({
   expense,
+  formId,
   onSubmit,
-  onCancel,
-  isLoading,
 }: ExpenseFormProps) {
   const {
     register,
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });
+
+  const { data: projectsData } = useProjectsShortList();
+  const projectOptions = [
+    { value: "", label: "General (no project)" },
+    ...(projectsData?.projects?.map((p) => ({ value: String(p.id), label: p.title })) ?? []),
+  ];
+
+  const selectedProjectId = watch("project_id");
+  const { data: phasesData } = usePhases(selectedProjectId || null, { page: 1, limit: 100 });
+  const phaseOptions = [
+    { value: "", label: "No specific phase" },
+    ...(phasesData?.phases?.map((ph) => ({ value: String(ph.id), label: ph.title })) ?? []),
+  ];
 
   useEffect(() => {
     if (expense) {
@@ -62,6 +92,9 @@ export function ExpenseForm({
         title: expense.title ?? "",
         description: expense.description ?? "",
         type: expense.type ?? "direct",
+        project_id: expense.project_id ?? "",
+        phase_id: expense.phase_id ?? "",
+        cost_category: expense.cost_category ?? "other",
       });
     } else {
       reset(defaultEmpty);
@@ -69,7 +102,7 @@ export function ExpenseForm({
   }, [expense, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <Input
           label="Amount *"
@@ -96,32 +129,73 @@ export function ExpenseForm({
         error={errors.description?.message}
         {...register("description")}
       />
-      <Controller
-        name="type"
-        control={control}
-        render={({ field }) => (
-          <CustomSelect
-            label="Type *"
-            options={EXPENSE_TYPES.map((t) => ({
-              value: t.value,
-              label: t.label,
-            }))}
-            placeholder="Select type"
-            error={errors.type?.message}
-            {...field}
-            onChange={(v) => field.onChange(v)}
-          />
-        )}
-      />
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Button type="submit" loading={isLoading}>
-          {expense ? "Update" : "Create"}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
+      <div className="grid grid-cols-2 gap-4">
+        <Controller
+          name="type"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Type *"
+              options={EXPENSE_TYPES.map((t) => ({
+                value: t.value,
+                label: t.label,
+              }))}
+              placeholder="Select type"
+              error={errors.type?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+        <Controller
+          name="cost_category"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Cost category *"
+              options={COST_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
+              placeholder="Select category"
+              error={errors.cost_category?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Controller
+          name="project_id"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Project"
+              options={projectOptions}
+              placeholder="General (no project)"
+              searchable
+              error={errors.project_id?.message}
+              {...field}
+              onChange={(v) => {
+                field.onChange(v);
+                setValue("phase_id", "");
+              }}
+            />
+          )}
+        />
+        <Controller
+          name="phase_id"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Phase"
+              options={phaseOptions}
+              placeholder="No specific phase"
+              disabled={!selectedProjectId}
+              error={errors.phase_id?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
       </div>
     </form>
   );

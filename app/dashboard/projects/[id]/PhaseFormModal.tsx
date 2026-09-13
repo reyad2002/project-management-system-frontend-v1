@@ -2,6 +2,10 @@
 
 import { usePhase, useCreatePhase, useUpdatePhase } from "@/hooks/use-phases";
 import { PhaseForm, type PhaseFormData } from "@/components/phases/PhaseForm";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+
+const FORM_ID = "phase-form";
 
 interface PhaseFormModalProps {
   open: boolean;
@@ -46,30 +50,23 @@ export function PhaseFormModal({
   const isLoading = createPhase.isPending || updatePhase.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        role="button"
-        tabIndex={0}
-        aria-label="Close"
-      />
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl">
-        <div className="sticky top-0 z-10 border-b border-[var(--card-border)] bg-[var(--card)] px-6 py-4">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {phaseId ? "Edit phase" : "New phase"}
-          </h2>
-        </div>
-        <div className="p-6">
-          <PhaseForm
-            phase={phase ?? undefined}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={phaseId ? "Edit phase" : "New phase"}
+      size="lg"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form={FORM_ID} loading={isLoading}>
+            {phaseId ? "Update" : "Create"}
+          </Button>
+        </>
+      }
+    >
+      <PhaseForm phase={phase ?? undefined} formId={FORM_ID} onSubmit={handleSubmit} />
+    </Modal>
   );
 }

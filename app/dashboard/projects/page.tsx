@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { Badge } from "@/components/ui/Badge";
+import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { PROJECT_STATUSES } from "@/lib/constants";
+import { projectStatusVariant } from "@/lib/status-badges";
 import { ProjectFormModal } from "./ProjectFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -126,85 +129,77 @@ export default function ProjectsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
-            </div>
+            <Table>
+              <TableHead>
+                <Th>Title</Th>
+                <Th>Status</Th>
+                <Th>Price</Th>
+                <Th>Due date</Th>
+                <Th align="right">Actions</Th>
+              </TableHead>
+              <TableBody>
+                <TableSkeletonRows columns={5} />
+              </TableBody>
+            </Table>
           ) : !data?.projects?.length ? (
             <p className="py-8 text-center text-(--muted)">
               No projects found.
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-xl border border-(--card-border)">
-                <table className="w-full text-sm">
-                  <thead className="bg-(--muted-bg)">
-                    <tr className="text-left text-(--muted)">
-                      <th className="px-4 py-3 font-medium">Title</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium">Price</th>
-                      <th className="px-4 py-3 font-medium">Due date</th>
-                      <th className="px-4 py-3 font-medium text-right">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.projects.map((p, index) => (
-                      <tr
-                        key={p.id}
-                        className={`border-t border-(--card-border) ${
-                          index % 2 === 0 ? "bg-(--card)" : "bg-(--muted-bg)/40"
-                        } transition-colors hover:bg-sky-50/40`}
-                      >
-                        <td className="px-4 py-3 font-medium text-foreground">
-                          {p.title}
-                        </td>
-                        <td className="px-4 py-3 capitalize text-(--muted)">
-                          {p.status.replace("_", " ")}
-                        </td>
-                        <td className="px-4 py-3 text-(--muted)">
-                          {p.price != null ? formatMoney(p.price) : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-(--muted)">
-                          {p.due_date ?? "—"}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <Link href={`/dashboard/projects/${p.id}`}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-sky-700 hover:bg-sky-50 hover:text-sky-800"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
+              <Table>
+                <TableHead>
+                  <Th>Title</Th>
+                  <Th>Status</Th>
+                  <Th>Price</Th>
+                  <Th>Due date</Th>
+                  <Th align="right">Actions</Th>
+                </TableHead>
+                <TableBody>
+                  {data.projects.map((p) => (
+                    <TableRow key={p.id}>
+                      <Td className="font-medium text-foreground">{p.title}</Td>
+                      <Td>
+                        <Badge variant={projectStatusVariant[p.status]}>{p.status.replace("_", " ")}</Badge>
+                      </Td>
+                      <Td className="text-(--muted)">{p.price != null ? formatMoney(p.price) : "—"}</Td>
+                      <Td className="text-(--muted)">{p.due_date ?? "—"}</Td>
+                      <Td align="right">
+                        <div className="inline-flex items-center gap-1">
+                          <Link href={`/dashboard/projects/${p.id}`}>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-                              onClick={() => {
-                                setEditingId(p.id);
-                                setModalOpen(true);
-                              }}
+                              className="text-sky-700 hover:bg-sky-50 hover:text-sky-800"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                              onClick={() => setDeletingProjectId(p.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                            onClick={() => {
+                              setEditingId(p.id);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                            onClick={() => setDeletingProjectId(p.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-sm text-(--muted)">

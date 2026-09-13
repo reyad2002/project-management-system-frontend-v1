@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useFinancialStats } from "@/hooks/use-statistics";
+import Link from "next/link";
+import { useFinancialStats, useArAging, useApAging } from "@/hooks/use-statistics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import {
@@ -12,6 +13,8 @@ import {
   Percent,
   ArrowUpRight,
   ArrowDownRight,
+  Landmark,
+  BadgeAlert,
 } from "lucide-react";
 
 function formatMoney(n: number) {
@@ -30,10 +33,13 @@ function formatPercent(n: number) {
 export default function FinancePage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [basis, setBasis] = useState<"accrual" | "cash">("accrual");
 
   const params =
-    fromDate && toDate ? { from_date: fromDate, to_date: toDate } : undefined;
+    fromDate && toDate ? { from_date: fromDate, to_date: toDate, basis } : { basis };
   const { data, isLoading, error } = useFinancialStats(params);
+  const { data: arAging } = useArAging();
+  const { data: apAging } = useApAging();
 
   if (isLoading) {
     return (
@@ -64,6 +70,30 @@ export default function FinancePage() {
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
+          <div className="flex overflow-hidden rounded-xl border border-[var(--border)]">
+            <button
+              type="button"
+              onClick={() => setBasis("accrual")}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                basis === "accrual"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--muted-bg)]"
+              }`}
+            >
+              Accrual
+            </button>
+            <button
+              type="button"
+              onClick={() => setBasis("cash")}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${
+                basis === "cash"
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--muted-bg)]"
+              }`}
+            >
+              Cash
+            </button>
+          </div>
           <Input
             type="date"
             label="From"
@@ -82,6 +112,52 @@ export default function FinancePage() {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Receivables & Payables */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardContent className="flex items-start justify-between p-6">
+            <div>
+              <p className="text-sm font-medium text-[var(--muted)]">
+                Outstanding receivables
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+                {formatMoney(arAging?.totalOutstanding ?? 0)}
+              </p>
+              <Link
+                href="/dashboard/invoices/ar-aging"
+                className="mt-1 inline-block text-xs text-[var(--primary)] hover:underline"
+              >
+                View aging report
+              </Link>
+            </div>
+            <div className="rounded-lg bg-sky-100 p-3 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400">
+              <Landmark className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-start justify-between p-6">
+            <div>
+              <p className="text-sm font-medium text-[var(--muted)]">
+                Outstanding payables
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+                {formatMoney(apAging?.totalOutstanding ?? 0)}
+              </p>
+              <Link
+                href="/dashboard/invoices/ap-aging"
+                className="mt-1 inline-block text-xs text-[var(--primary)] hover:underline"
+              >
+                View aging report
+              </Link>
+            </div>
+            <div className="rounded-lg bg-rose-100 p-3 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+              <BadgeAlert className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Top line: Revenue & Expenses */}

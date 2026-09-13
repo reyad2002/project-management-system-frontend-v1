@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
@@ -36,9 +35,8 @@ export type ProjectFormData = z.infer<typeof schema>;
 interface ProjectFormProps {
   project?: Project | null;
   clientOptions: { value: string; label: string }[];
+  formId: string;
   onSubmit: (data: ProjectFormData) => Promise<void>;
-  onCancel?: () => void;
-  isLoading?: boolean;
 }
 
 const defaultEmpty: ProjectFormData = {
@@ -54,9 +52,8 @@ const defaultEmpty: ProjectFormData = {
 export function ProjectForm({
   project,
   clientOptions,
+  formId,
   onSubmit,
-  onCancel,
-  isLoading,
 }: ProjectFormProps) {
   const {
     register,
@@ -86,7 +83,7 @@ export function ProjectForm({
   }, [project, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
       <Controller
         name="client_id"
         control={control}
@@ -95,6 +92,7 @@ export function ProjectForm({
             label="Client *"
             options={clientOptions}
             placeholder="Choose client"
+            searchable
             error={errors.client_id?.message}
             {...field}
             value={field.value != null ? String(field.value) : ""}
@@ -152,16 +150,6 @@ export function ProjectForm({
             />
           )}
         />
-      </div>
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Button type="submit" loading={isLoading}>
-          {project ? "Update" : "Create"}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
       </div>
     </form>
   );

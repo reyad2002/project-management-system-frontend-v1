@@ -2,6 +2,10 @@
 
 import { useClient, useCreateClient, useUpdateClient } from "@/hooks/use-clients";
 import { ClientForm, type ClientFormData } from "@/components/clients/ClientForm";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+
+const FORM_ID = "client-form";
 
 interface ClientFormModalProps {
   open: boolean;
@@ -35,30 +39,22 @@ export function ClientFormModal({ open, onClose, clientId }: ClientFormModalProp
   const isLoading = createClient.isPending || updateClient.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        role="button"
-        tabIndex={0}
-        aria-label="Close"
-      />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl">
-        <div className="border-b border-[var(--card-border)] px-6 py-4">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {clientId ? "Edit client" : "New client"}
-          </h2>
-        </div>
-        <div className="p-6">
-          <ClientForm
-            client={client ?? undefined}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={clientId ? "Edit client" : "New client"}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form={FORM_ID} loading={isLoading}>
+            {clientId ? "Update" : "Create"}
+          </Button>
+        </>
+      }
+    >
+      <ClientForm client={client ?? undefined} formId={FORM_ID} onSubmit={handleSubmit} />
+    </Modal>
   );
 }

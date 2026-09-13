@@ -1,0 +1,163 @@
+"use client";
+
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { CustomSelect } from "@/components/ui/CustomSelect";
+import { TASK_STATUSES, TASK_PRIORITIES } from "@/lib/constants";
+import { useProjectMembers } from "@/hooks/use-project-members";
+import { usePhases } from "@/hooks/use-phases";
+import type { Task } from "@/lib/api";
+
+const schema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
+    status: z.enum(["todo", "in_progress", "in_review", "done", "blocked"]),
+    priority: z.enum(["low", "medium", "high", "urgent"]),
+    assignee_id: z.string().optional(),
+    phase_id: z.string().optional(),
+    start_date: z.string().optional(),
+    due_date: z.string().optional(),
+  })
+  .refine((d) => !d.start_date || !d.due_date || new Date(d.due_date) >= new Date(d.start_date), {
+    message: "Due date must be on or after start date",
+    path: ["due_date"],
+  });
+
+export type TaskFormData = z.infer<typeof schema>;
+
+interface TaskFormProps {
+  task?: Task | null;
+  projectId: string;
+  formId: string;
+  onSubmit: (data: TaskFormData) => Promise<void>;
+}
+
+const defaultEmpty: TaskFormData = {
+  title: "",
+  description: "",
+  status: "todo",
+  priority: "medium",
+  assignee_id: "",
+  phase_id: "",
+  start_date: "",
+  due_date: "",
+};
+
+export function TaskForm({ task, projectId, formId, onSubmit }: TaskFormProps) {
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<TaskFormData>({
+    resolver: zodResolver(schema),
+    defaultValues: defaultEmpty,
+  });
+
+  const { data: membersData } = useProjectMembers(projectId);
+  const assigneeOptions = [
+    { value: "", label: "Unassigned" },
+    ...(membersData?.members?.map((m) => ({ value: m.user_id, label: m.user_name })) ?? []),
+  ];
+
+  const { data: phasesData } = usePhases(projectId, { page: 1, limit: 100 });
+  const phaseOptions = [
+    { value: "", label: "No specific phase" },
+    ...(phasesData?.phases?.map((ph) => ({ value: String(ph.id), label: ph.title })) ?? []),
+  ];
+
+  useEffect(() => {
+    if (task) {
+      reset({
+        title: task.title,
+        description: task.description ?? "",
+        status: task.status,
+        priority: task.priority,
+        assignee_id: task.assignee_id ?? "",
+        phase_id: task.phase_id ?? "",
+        start_date: task.start_date ?? "",
+        due_date: task.due_date ?? "",
+      });
+    } else {
+      reset(defaultEmpty);
+    }
+  }, [task, reset]);
+
+  return (
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
+      <Input label="Title *" error={errors.title?.message} {...register("title")} />
+      <Textarea label="Description" error={errors.description?.message} {...register("description")} />
+      <div className="grid grid-cols-2 gap-4">
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Status *"
+              options={TASK_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+              placeholder="Select status"
+              error={errors.status?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+        <Controller
+          name="priority"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Priority *"
+              options={TASK_PRIORITIES.map((p) => ({ value: p.value, label: p.label }))}
+              placeholder="Select priority"
+              error={errors.priority?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Controller
+          name="assignee_id"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Assignee"
+              options={assigneeOptions}
+              placeholder="Unassigned"
+              searchable
+              error={errors.assignee_id?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+        <Controller
+          name="phase_id"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Phase"
+              options={phaseOptions}
+              placeholder="No specific phase"
+              error={errors.phase_id?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Input label="Start date" type="date" error={errors.start_date?.message} {...register("start_date")} />
+        <Input label="Due date" type="date" error={errors.due_date?.message} {...register("due_date")} />
+      </div>
+    </form>
+  );
+}

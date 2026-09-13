@@ -2,6 +2,10 @@
 
 import { useExpense, useCreateExpense, useUpdateExpense } from "@/hooks/use-expenses";
 import { ExpenseForm, type ExpenseFormData } from "@/components/expenses/ExpenseForm";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+
+const FORM_ID = "expense-form";
 
 interface ExpenseFormModalProps {
   open: boolean;
@@ -17,10 +21,15 @@ export function ExpenseFormModal({ open, onClose, expenseId }: ExpenseFormModalP
   if (!open) return null;
 
   const handleSubmit = async (data: ExpenseFormData) => {
+    const payload = {
+      ...data,
+      project_id: data.project_id || null,
+      phase_id: data.phase_id || null,
+    };
     if (expenseId && expense) {
-      await updateExpense.mutateAsync(data);
+      await updateExpense.mutateAsync(payload);
     } else {
-      await createExpense.mutateAsync(data);
+      await createExpense.mutateAsync(payload);
     }
     onClose();
   };
@@ -28,23 +37,22 @@ export function ExpenseFormModal({ open, onClose, expenseId }: ExpenseFormModalP
   const isLoading = createExpense.isPending || updateExpense.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => e.key === "Escape" && onClose()} role="button" tabIndex={0} aria-label="Close" />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl">
-        <div className="border-b border-[var(--card-border)] px-6 py-4">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {expenseId ? "Edit expense" : "New expense"}
-          </h2>
-        </div>
-        <div className="p-6">
-          <ExpenseForm
-            expense={expense ?? undefined}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={expenseId ? "Edit expense" : "New expense"}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form={FORM_ID} loading={isLoading}>
+            {expenseId ? "Update" : "Create"}
+          </Button>
+        </>
+      }
+    >
+      <ExpenseForm expense={expense ?? undefined} formId={FORM_ID} onSubmit={handleSubmit} />
+    </Modal>
   );
 }
