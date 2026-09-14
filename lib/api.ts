@@ -674,6 +674,9 @@ export interface ChecklistItem {
   position: number;
 }
 
+export type TaskSource = "manual" | "meeting";
+export type TaskAssigneeType = "team_member" | "client";
+
 export interface Task {
   id: string;
   company_id: string;
@@ -686,6 +689,11 @@ export interface Task {
   priority: TaskPriority;
   assignee_id: string | null;
   assignee_name: string | null;
+  assignee_type: TaskAssigneeType;
+  client_assignee_id: string | null;
+  client_assignee_name: string | null;
+  source: TaskSource;
+  source_id: string | null;
   start_date: string | null;
   due_date: string | null;
   completed_at: string | null;
@@ -702,7 +710,9 @@ export interface CreateTaskInput {
   parent_task_id?: string | null;
   status?: TaskStatus;
   priority?: TaskPriority;
+  assignee_type?: TaskAssigneeType;
   assignee_id?: string | null;
+  client_assignee_id?: string | null;
   start_date?: string | null;
   due_date?: string | null;
 }
@@ -773,4 +783,173 @@ export const clientPortalApi = {
   invite: (clientId: string, data: { name: string; email: string }) =>
     api.post<ClientPortalUser>(`/api/clients/${clientId}/portal-users`, data),
   revoke: (clientId: string, id: string) => api.delete(`/api/clients/${clientId}/portal-users/${id}`),
+};
+
+// ---- Notifications ----
+export type NotificationType =
+  | "meeting_reminder"
+  | "meeting_note_added"
+  | "action_item_assigned"
+  | "phase_approved"
+  | "task_assigned_to_client"
+  | "feedback_requested";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  related_type: "meeting" | "task" | "phase" | "invoice" | null;
+  related_id: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+export const notificationsApi = {
+  list: (params?: { is_read?: boolean; limit?: number }) =>
+    api.get<{ notifications: AppNotification[]; unreadCount: number }>("/api/notifications", { params }),
+  markRead: (id: string) => api.patch<AppNotification>(`/api/notifications/${id}/read`),
+  markAllRead: () => api.patch("/api/notifications/read-all"),
+};
+
+// ---- Meetings ----
+export type MeetingStatus = "scheduled" | "completed" | "cancelled";
+
+export interface Meeting {
+  id: string;
+  project_id: string;
+  title: string;
+  agenda: string | null;
+  scheduled_at: string;
+  meeting_link: string | null;
+  status: MeetingStatus;
+  created_at: string;
+}
+
+export interface CreateMeetingInput {
+  title: string;
+  agenda?: string;
+  scheduled_at: string;
+  meeting_link?: string;
+  attendee_ids: { team_member_ids?: string[]; client_portal_user_ids?: string[] };
+}
+
+export interface UpdateMeetingInput {
+  title?: string;
+  agenda?: string;
+  scheduled_at?: string;
+  meeting_link?: string;
+  status?: MeetingStatus;
+}
+
+export interface ActionItemInput {
+  title: string;
+  assignee_type: TaskAssigneeType;
+  assignee_id: string;
+  due_date?: string;
+}
+
+export interface MeetingNoteRead {
+  portal_user_id: string;
+  portal_user_name: string;
+  read_at: string;
+}
+
+export interface MeetingNote {
+  id: string;
+  meeting_id: string;
+  content: string;
+  word_file_url: string | null;
+  created_at: string;
+  reads: MeetingNoteRead[];
+}
+
+export const meetingsApi = {
+  list: (projectId: string, params?: { status?: MeetingStatus }) =>
+    api.get<{ meetings: Meeting[] }>(`/api/projects/${projectId}/meetings`, { params }),
+  create: (projectId: string, data: CreateMeetingInput) =>
+    api.post<Meeting>(`/api/projects/${projectId}/meetings`, data),
+  update: (id: string, data: UpdateMeetingInput) => api.patch<Meeting>(`/api/meetings/${id}`, data),
+  notes: {
+    list: (meetingId: string) => api.get<{ notes: MeetingNote[] }>(`/api/meetings/${meetingId}/notes`),
+    add: (meetingId: string, data: { content: string; action_items?: ActionItemInput[] }) =>
+      api.post<MeetingNote>(`/api/meetings/${meetingId}/notes`, data),
+    exportUrl: (meetingId: string) => `${API_BASE}api/meetings/${meetingId}/notes/export`,
+  },
+};
+
+// ---- Project Links ----
+export type ProjectLinkType = "staging" | "live" | "dashboard" | "other";
+
+export interface ProjectLink {
+  id: string;
+  project_id: string;
+  label: string;
+  url: string;
+  type: ProjectLinkType;
+  created_at: string;
+}
+
+export interface CreateProjectLinkInput {
+  label: string;
+  url: string;
+  type?: ProjectLinkType;
+}
+
+export const projectLinksApi = {
+  list: (projectId: string) => api.get<{ links: ProjectLink[] }>(`/api/projects/${projectId}/links`),
+  create: (projectId: string, data: CreateProjectLinkInput) =>
+    api.post<ProjectLink>(`/api/projects/${projectId}/links`, data),
+  delete: (id: string) => api.delete(`/api/project-links/${id}`),
+};
+
+// ---- Credentials ----
+export interface Credential {
+  id: string;
+  project_id: string;
+  label: string;
+  username: string;
+  panel_url: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CreateCredentialInput {
+  label: string;
+  username: string;
+  password: string;
+  panel_url?: string;
+  notes?: string;
+}
+
+export interface CredentialAccessLog {
+  accessed_by_type: "team_member" | "client_portal_user";
+  accessed_by_name: string;
+  accessed_at: string;
+}
+
+export const credentialsApi = {
+  list: (projectId: string) => api.get<{ credentials: Credential[] }>(`/api/projects/${projectId}/credentials`),
+  create: (projectId: string, data: CreateCredentialInput) =>
+    api.post<Credential>(`/api/projects/${projectId}/credentials`, data),
+  reveal: (id: string) => api.post<{ password: string }>(`/api/credentials/${id}/reveal`),
+  accessLog: (id: string) => api.get<{ logs: CredentialAccessLog[] }>(`/api/credentials/${id}/access-log`),
+};
+
+// ---- Micro-feedback ----
+export type FeedbackRelatedType = "meeting" | "phase";
+
+export interface FeedbackEntry {
+  id: string;
+  related_type: FeedbackRelatedType;
+  related_id: string;
+  rating: number;
+  submitted_by_name: string;
+  created_at: string;
+}
+
+export const feedbackApi = {
+  list: (projectId: string) =>
+    api.get<{ feedback: FeedbackEntry[]; averageRating: number }>(`/api/projects/${projectId}/feedback`),
 };

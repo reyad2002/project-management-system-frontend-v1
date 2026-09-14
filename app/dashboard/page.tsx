@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const { overview, financial, projectsByStatus } = data;
   const outstandingReceivables =
     overview.totalProjectValue - overview.totalPaymentsReceived;
-
+// console.log(overview);
   return (
     <div className="space-y-8">
       <div>

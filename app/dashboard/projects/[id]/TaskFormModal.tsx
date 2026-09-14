@@ -14,11 +14,12 @@ interface TaskFormModalProps {
   open: boolean;
   onClose: () => void;
   projectId: string;
+  clientId: string;
   taskId: string | null;
   defaultParentTaskId?: string | null;
 }
 
-export function TaskFormModal({ open, onClose, projectId, taskId, defaultParentTaskId }: TaskFormModalProps) {
+export function TaskFormModal({ open, onClose, projectId, clientId, taskId, defaultParentTaskId }: TaskFormModalProps) {
   const formId = `task-form-${useId()}`;
   const { data: task } = useTask(taskId ?? null);
   const createTask = useCreateTask(projectId);
@@ -36,7 +37,9 @@ export function TaskFormModal({ open, onClose, projectId, taskId, defaultParentT
       description: data.description || undefined,
       status: data.status,
       priority: data.priority,
-      assignee_id: data.assignee_id || null,
+      assignee_type: data.assignee_type,
+      assignee_id: data.assignee_type === "team_member" ? data.assignee_id || null : null,
+      client_assignee_id: data.assignee_type === "client" ? data.client_assignee_id || null : null,
       phase_id: data.phase_id || null,
       start_date: data.start_date || null,
       due_date: data.due_date || null,
@@ -81,7 +84,7 @@ export function TaskFormModal({ open, onClose, projectId, taskId, defaultParentT
         }
       >
         <div className="space-y-5">
-          <TaskForm task={task ?? undefined} projectId={projectId} formId={formId} onSubmit={handleSubmit} />
+          <TaskForm task={task ?? undefined} projectId={projectId} clientId={clientId} formId={formId} onSubmit={handleSubmit} />
           {taskId && (
             <>
               <div className="border-t border-(--card-border) pt-4">
@@ -106,6 +109,7 @@ export function TaskFormModal({ open, onClose, projectId, taskId, defaultParentT
           open
           onClose={() => setNested(null)}
           projectId={projectId}
+          clientId={clientId}
           taskId={nested.taskId}
           defaultParentTaskId={nested.parentTaskId}
         />

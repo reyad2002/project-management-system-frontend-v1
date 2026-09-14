@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/Button";
 import { LogOut, Menu, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/use-notifications";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -15,6 +17,9 @@ export function Header({ onMenuClick }: HeaderProps) {
   const userInitial = displayName.charAt(0).toUpperCase();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
+  const { data: notificationsData } = useNotifications({ limit: 10 });
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -65,6 +70,12 @@ export function Header({ onMenuClick }: HeaderProps) {
           className="relative flex items-center gap-2 md:gap-3"
           ref={profileRef}
         >
+          <NotificationBell
+            notifications={notificationsData?.notifications ?? []}
+            unreadCount={notificationsData?.unreadCount ?? 0}
+            onMarkRead={(id) => markRead.mutate(id)}
+            onMarkAllRead={() => markAllRead.mutate()}
+          />
           <button
             type="button"
             onClick={() => setProfileOpen((prev) => !prev)}

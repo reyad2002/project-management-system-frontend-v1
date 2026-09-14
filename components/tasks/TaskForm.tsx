@@ -10,6 +10,7 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { TASK_STATUSES, TASK_PRIORITIES } from "@/lib/constants";
 import { useProjectMembers } from "@/hooks/use-project-members";
 import { usePhases } from "@/hooks/use-phases";
+import { useClientPortalUsers } from "@/hooks/use-client-portal";
 import type { Task } from "@/lib/api";
 
 const schema = z
@@ -18,7 +19,9 @@ const schema = z
     description: z.string().optional(),
     status: z.enum(["todo", "in_progress", "in_review", "done", "blocked"]),
     priority: z.enum(["low", "medium", "high", "urgent"]),
+    assignee_type: z.enum(["team_member", "client"]),
     assignee_id: z.string().optional(),
+    client_assignee_id: z.string().optional(),
     phase_id: z.string().optional(),
     start_date: z.string().optional(),
     due_date: z.string().optional(),
@@ -33,6 +36,7 @@ export type TaskFormData = z.infer<typeof schema>;
 interface TaskFormProps {
   task?: Task | null;
   projectId: string;
+  clientId: string;
   formId: string;
   onSubmit: (data: TaskFormData) => Promise<void>;
 }
@@ -42,17 +46,20 @@ const defaultEmpty: TaskFormData = {
   description: "",
   status: "todo",
   priority: "medium",
+  assignee_type: "team_member",
   assignee_id: "",
+  client_assignee_id: "",
   phase_id: "",
   start_date: "",
   due_date: "",
 };
 
-export function TaskForm({ task, projectId, formId, onSubmit }: TaskFormProps) {
+export function TaskForm({ task, projectId, clientId, formId, onSubmit }: TaskFormProps) {
   const {
     register,
     control,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
   } = useForm<TaskFormData>({
@@ -60,10 +67,18 @@ export function TaskForm({ task, projectId, formId, onSubmit }: TaskFormProps) {
     defaultValues: defaultEmpty,
   });
 
+  const assigneeType = watch("assignee_type");
+
   const { data: membersData } = useProjectMembers(projectId);
   const assigneeOptions = [
     { value: "", label: "Unassigned" },
     ...(membersData?.members?.map((m) => ({ value: m.user_id, label: m.user_name })) ?? []),
+  ];
+
+  const { data: portalUsersData } = useClientPortalUsers(clientId);
+  const clientAssigneeOptions = [
+    { value: "", label: "Unassigned" },
+    ...(portalUsersData?.portalUsers?.map((u) => ({ value: u.id, label: u.name })) ?? []),
   ];
 
   const { data: phasesData } = usePhases(projectId, { page: 1, limit: 100 });
@@ -79,7 +94,9 @@ export function TaskForm({ task, projectId, formId, onSubmit }: TaskFormProps) {
         description: task.description ?? "",
         status: task.status,
         priority: task.priority,
+        assignee_type: task.assignee_type,
         assignee_id: task.assignee_id ?? "",
+        client_assignee_id: task.client_assignee_id ?? "",
         phase_id: task.phase_id ?? "",
         start_date: task.start_date ?? "",
         due_date: task.due_date ?? "",
@@ -125,20 +142,55 @@ export function TaskForm({ task, projectId, formId, onSubmit }: TaskFormProps) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Controller
-          name="assignee_id"
+          name="assignee_type"
           control={control}
           render={({ field }) => (
             <CustomSelect
-              label="Assignee"
-              options={assigneeOptions}
-              placeholder="Unassigned"
-              searchable
-              error={errors.assignee_id?.message}
+              label="Assign to"
+              options={[
+                { value: "team_member", label: "Team member" },
+                { value: "client", label: "Client" },
+              ]}
               {...field}
               onChange={(v) => field.onChange(v)}
             />
           )}
         />
+        {assigneeType === "client" ? (
+          <Controller
+            name="client_assignee_id"
+            control={control}
+            render={({ field }) => (
+              <CustomSelect
+                label="Assignee"
+                options={clientAssigneeOptions}
+                placeholder="Unassigned"
+                searchable
+                error={errors.client_assignee_id?.message}
+                {...field}
+                onChange={(v) => field.onChange(v)}
+              />
+            )}
+          />
+        ) : (
+          <Controller
+            name="assignee_id"
+            control={control}
+            render={({ field }) => (
+              <CustomSelect
+                label="Assignee"
+                options={assigneeOptions}
+                placeholder="Unassigned"
+                searchable
+                error={errors.assignee_id?.message}
+                {...field}
+                onChange={(v) => field.onChange(v)}
+              />
+            )}
+          />
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <Controller
           name="phase_id"
           control={control}

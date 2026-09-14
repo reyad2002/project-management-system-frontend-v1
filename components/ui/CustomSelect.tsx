@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useRef, useState, useImperativeHandle, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export interface CustomSelectOption {
   value: string;
@@ -49,7 +50,10 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
     const [open, setOpen] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState(-1);
     const [query, setQuery] = useState("");
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const hiddenInputRef = useRef<HTMLInputElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,10 +86,39 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [query]);
 
+    // The dropdown is portaled to <body> and fixed-positioned against the trigger's
+    // viewport rect, so it never gets clipped by a scrollable ancestor (e.g. a Modal
+    // body with overflow-y-auto) and can flip above the trigger when there's no room below.
+    useEffect(() => {
+      if (!open) return;
+      const DROPDOWN_MAX_HEIGHT = 260;
+      const updatePosition = () => {
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUp = spaceBelow < DROPDOWN_MAX_HEIGHT && rect.top > spaceBelow;
+        setDropdownStyle(
+          openUp
+            ? { position: "fixed", bottom: window.innerHeight - rect.top + 4, left: rect.left, width: rect.width }
+            : { position: "fixed", top: rect.bottom + 4, left: rect.left, width: rect.width }
+        );
+      };
+      updatePosition();
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+      return () => {
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+      };
+    }, [open]);
+
     useEffect(() => {
       if (!open) return;
       const handleClickOutside = (e: MouseEvent) => {
-        if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        const target = e.target as Node;
+        const insideTrigger = containerRef.current?.contains(target);
+        const insideDropdown = dropdownRef.current?.contains(target);
+        if (!insideTrigger && !insideDropdown) {
           setOpen(false);
           onBlur?.();
         }
@@ -157,6 +190,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
         />
         <div className="relative">
           <button
+            ref={triggerRef}
             type="button"
             id={selectId}
             disabled={disabled}
@@ -181,53 +215,60 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          {open && (
-            <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg">
-              {searchable && (
-                <div className="border-b border-[var(--border)] p-1.5">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={query}
-                    placeholder="Type to search..."
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={handleListKeyDown}
-                    className="w-full rounded-lg border-0 bg-[var(--muted-bg)] px-2.5 py-1.5 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                  />
-                </div>
-              )}
-              <ul
-                role="listbox"
-                className="max-h-56 overflow-auto py-1"
-                onMouseLeave={() => setFocusedIndex(-1)}
+          {open &&
+            dropdownStyle &&
+            createPortal(
+              <div
+                ref={dropdownRef}
+                style={dropdownStyle}
+                className="z-[70] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg"
               >
-                {filteredOptions.length === 0 ? (
-                  <li className="px-3 py-2.5 text-sm text-[var(--muted)]">No matches</li>
-                ) : (
-                  filteredOptions.map((opt, i) => (
-                    <li
-                      key={opt.value}
-                      role="option"
-                      aria-selected={opt.value === value}
-                      className={`cursor-pointer px-3 py-2.5 text-sm transition-colors ${
-                        opt.value === value
-                          ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
-                          : "text-[var(--foreground)] hover:bg-[var(--muted-bg)]"
-                      } ${i === focusedIndex ? "bg-[var(--muted-bg)]" : ""}`}
-                      onMouseEnter={() => setFocusedIndex(i)}
-                      onClick={() => {
-                        onChange?.(opt.value);
-                        setOpen(false);
-                        onBlur?.();
-                      }}
-                    >
-                      {opt.label}
-                    </li>
-                  ))
+                {searchable && (
+                  <div className="border-b border-[var(--border)] p-1.5">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={query}
+                      placeholder="Type to search..."
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={handleListKeyDown}
+                      className="w-full rounded-lg border-0 bg-[var(--muted-bg)] px-2.5 py-1.5 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                    />
+                  </div>
                 )}
-              </ul>
-            </div>
-          )}
+                <ul
+                  role="listbox"
+                  className="max-h-56 overflow-auto py-1"
+                  onMouseLeave={() => setFocusedIndex(-1)}
+                >
+                  {filteredOptions.length === 0 ? (
+                    <li className="px-3 py-2.5 text-sm text-[var(--muted)]">No matches</li>
+                  ) : (
+                    filteredOptions.map((opt, i) => (
+                      <li
+                        key={opt.value}
+                        role="option"
+                        aria-selected={opt.value === value}
+                        className={`cursor-pointer px-3 py-2.5 text-sm transition-colors ${
+                          opt.value === value
+                            ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                            : "text-[var(--foreground)] hover:bg-[var(--muted-bg)]"
+                        } ${i === focusedIndex ? "bg-[var(--muted-bg)]" : ""}`}
+                        onMouseEnter={() => setFocusedIndex(i)}
+                        onClick={() => {
+                          onChange?.(opt.value);
+                          setOpen(false);
+                          onBlur?.();
+                        }}
+                      >
+                        {opt.label}
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>,
+              document.body
+            )}
         </div>
         {error && (
           <p className="mt-1 text-xs text-[var(--destructive)]">{error}</p>

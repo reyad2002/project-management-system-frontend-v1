@@ -25,6 +25,8 @@ function initials(name: string) {
 export function TaskCard({ task, nextStatus, onOpen, onMoveNext, isMoving }: TaskCardProps) {
   const isOverdue = !!task.due_date && task.status !== "done" && new Date(task.due_date) < new Date(new Date().toDateString());
 
+  const assigneeName = task.assignee_type === "client" ? task.client_assignee_name : task.assignee_name;
+
   return (
     <div className="rounded-xl border border-(--card-border) bg-(--card) p-3 shadow-sm">
       <button type="button" onClick={onOpen} className="block w-full text-left">
@@ -33,12 +35,21 @@ export function TaskCard({ task, nextStatus, onOpen, onMoveNext, isMoving }: Tas
           <Badge variant={taskPriorityVariant[task.priority]} dot={false}>
             {task.priority}
           </Badge>
-          {task.assignee_name && (
+          {task.source === "meeting" && (
+            <Badge variant="info" dot={false} className="text-[10px]">
+              From meeting
+            </Badge>
+          )}
+          {assigneeName && (
             <span
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-(--accent-muted) text-[0.65rem] font-semibold text-(--primary)"
-              title={task.assignee_name}
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-[0.65rem] font-semibold ${
+                task.assignee_type === "client"
+                  ? "bg-(--warning-bg) text-(--warning)"
+                  : "bg-(--accent-muted) text-(--primary)"
+              }`}
+              title={`${assigneeName}${task.assignee_type === "client" ? " (client)" : ""}`}
             >
-              {initials(task.assignee_name)}
+              {initials(assigneeName)}
             </span>
           )}
           {task.due_date && (

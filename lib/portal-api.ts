@@ -3,7 +3,19 @@ import Cookies from "js-cookie";
 import { API_BASE } from "./config";
 import { PORTAL_TOKEN_KEY } from "./portal-config";
 import { publishAppError } from "./error-bus";
-import type { Invoice, Project, ClientPaymentSummary, TimelineItem } from "./api";
+import type {
+  Invoice,
+  Project,
+  ClientPaymentSummary,
+  TimelineItem,
+  AppNotification,
+  Meeting,
+  MeetingNote,
+  ProjectLink,
+  Task,
+  Credential,
+  FeedbackRelatedType,
+} from "./api";
 
 /**
  * Separate axios instance for the Client Portal — a distinct auth surface from the
@@ -77,4 +89,46 @@ export const portalDataApi = {
   invoice: (id: string) => portalApi.get<Invoice>(`/api/portal/invoices/${id}`),
   paymentSummary: () => portalApi.get<ClientPaymentSummary>("/api/portal/payment-summary"),
   approvePhase: (phaseId: string) => portalApi.post(`/api/portal/phases/${phaseId}/approve`),
+};
+
+// ---- Notifications ----
+export const portalNotificationsApi = {
+  list: (params?: { is_read?: boolean; limit?: number }) =>
+    portalApi.get<{ notifications: AppNotification[]; unreadCount: number }>("/api/portal/notifications", { params }),
+  markRead: (id: string) => portalApi.patch(`/api/portal/notifications/${id}/read`),
+  markAllRead: () => portalApi.patch("/api/portal/notifications/read-all"),
+};
+
+// ---- Meetings ----
+export const portalMeetingsApi = {
+  list: (projectId: string) => portalApi.get<{ meetings: Meeting[] }>(`/api/portal/projects/${projectId}/meetings`),
+  notes: (meetingId: string) => portalApi.get<{ notes: MeetingNote[] }>(`/api/portal/meetings/${meetingId}/notes`),
+  markNoteRead: (noteId: string) => portalApi.post(`/api/portal/meeting-notes/${noteId}/mark-read`),
+  exportUrl: (noteId: string) => `${API_BASE}api/portal/meeting-notes/${noteId}/export`,
+};
+
+// ---- Project Links ----
+export const portalProjectLinksApi = {
+  list: (projectId: string) => portalApi.get<{ links: ProjectLink[] }>(`/api/portal/projects/${projectId}/links`),
+};
+
+// ---- Pending on Client (Tasks) ----
+export const portalTasksApi = {
+  pendingOnClient: (projectId: string) =>
+    portalApi.get<{ tasks: Task[] }>(`/api/portal/projects/${projectId}/tasks`, {
+      params: { assignee_type: "client" },
+    }),
+};
+
+// ---- Credentials ----
+export const portalCredentialsApi = {
+  list: (projectId: string) =>
+    portalApi.get<{ credentials: Credential[] }>(`/api/portal/projects/${projectId}/credentials`),
+  reveal: (id: string) => portalApi.post<{ password: string }>(`/api/portal/credentials/${id}/reveal`),
+};
+
+// ---- Micro-feedback ----
+export const portalFeedbackApi = {
+  submit: (data: { project_id: string; related_type: FeedbackRelatedType; related_id: string; rating: number }) =>
+    portalApi.post("/api/portal/feedback", data),
 };

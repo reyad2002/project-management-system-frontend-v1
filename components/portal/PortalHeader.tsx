@@ -4,6 +4,12 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { usePortalAuth } from "@/lib/portal-auth-context";
+import { NotificationBell } from "@/components/layout/NotificationBell";
+import {
+  usePortalNotifications,
+  useMarkPortalNotificationRead,
+  useMarkAllPortalNotificationsRead,
+} from "@/hooks/use-portal-notifications";
 
 function BrandMark({ className = "" }: { className?: string }) {
   return (
@@ -22,6 +28,9 @@ function BrandMark({ className = "" }: { className?: string }) {
 
 export function PortalHeader() {
   const { portalUser, logout } = usePortalAuth();
+  const { data: notificationsData } = usePortalNotifications({ limit: 10 });
+  const markRead = useMarkPortalNotificationRead();
+  const markAllRead = useMarkAllPortalNotificationsRead();
 
   return (
     <header className="sticky top-0 z-30 border-b border-(--border) bg-(--card)/95 backdrop-blur">
@@ -41,6 +50,12 @@ export function PortalHeader() {
               Hello, {portalUser.name} · {portalUser.client_name}
             </span>
           )}
+          <NotificationBell
+            notifications={notificationsData?.notifications ?? []}
+            unreadCount={notificationsData?.unreadCount ?? 0}
+            onMarkRead={(id) => markRead.mutate(id)}
+            onMarkAllRead={() => markAllRead.mutate()}
+          />
           <Button variant="ghost" size="sm" onClick={() => logout()}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout

@@ -7,6 +7,7 @@ import { useProject, useProjectPayments } from "@/hooks/use-projects";
 import { usePhases, useDeletePhase } from "@/hooks/use-phases";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useProjectProfitability } from "@/hooks/use-statistics";
+import { useFeedback } from "@/hooks/use-feedback";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +15,9 @@ import { Tabs } from "@/components/ui/Tabs";
 import { KanbanBoard } from "@/components/tasks/KanbanBoard";
 import { GanttChart } from "@/components/tasks/GanttChart";
 import { ProjectTeamTab } from "@/components/team/ProjectTeamTab";
+import { MeetingsTab } from "@/components/meetings/MeetingsTab";
+import { ProjectLinksTab } from "@/components/projects/ProjectLinksTab";
+import { CredentialsTab } from "@/components/credentials/CredentialsTab";
 import {
   ArrowLeft,
   Calendar,
@@ -21,6 +25,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Star,
 } from "lucide-react";
 import { PhaseFormModal } from "./PhaseFormModal";
 import { TaskFormModal } from "./TaskFormModal";
@@ -46,6 +51,7 @@ export default function ProjectDetailPage() {
   const { data: phasesData } = usePhases(id, { page: 1, limit: 100 });
   const { data: invoicesData } = useInvoices({ project_id: id, limit: 100 });
   const { data: profitability } = useProjectProfitability(id);
+  const { data: feedbackData } = useFeedback(id);
   const deletePhase = useDeletePhase(id);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
   const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
@@ -129,6 +135,12 @@ export default function ProjectDetailPage() {
                 Price: {formatMoney(project.price)}
               </span>
             )}
+            {feedbackData && feedbackData.feedback.length > 0 && (
+              <span className="flex items-center gap-2">
+                <Star className="h-4 w-4 fill-(--warning) text-(--warning)" />
+                {feedbackData.averageRating.toFixed(1)} avg. client feedback ({feedbackData.feedback.length})
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -167,6 +179,16 @@ export default function ProjectDetailPage() {
                 key: "team",
                 label: "Team",
                 content: <ProjectTeamTab projectId={id} />,
+              },
+              {
+                key: "meetings",
+                label: "Meetings",
+                content: <MeetingsTab projectId={id} clientId={project.client_id} />,
+              },
+              {
+                key: "links",
+                label: "Links",
+                content: <ProjectLinksTab projectId={id} />,
               },
               {
                 key: "phases",
@@ -260,6 +282,11 @@ export default function ProjectDetailPage() {
                 ),
               },
               {
+                key: "credentials",
+                label: "Credentials",
+                content: <CredentialsTab projectId={id} />,
+              },
+              {
                 key: "payments",
                 label: "Payments",
                 content: (
@@ -346,6 +373,7 @@ export default function ProjectDetailPage() {
           setOpenTaskId(null);
         }}
         projectId={id}
+        clientId={project.client_id}
         taskId={openTaskId}
       />
 

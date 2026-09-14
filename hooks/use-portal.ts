@@ -1,7 +1,14 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { portalDataApi } from "@/lib/portal-api";
+import {
+  portalDataApi,
+  portalMeetingsApi,
+  portalProjectLinksApi,
+  portalTasksApi,
+  portalCredentialsApi,
+  portalFeedbackApi,
+} from "@/lib/portal-api";
 
 export function usePortalProjects() {
   return useQuery({
@@ -45,5 +52,68 @@ export function useApprovePhase(projectId: string) {
   return useMutation({
     mutationFn: (phaseId: string) => portalDataApi.approvePhase(phaseId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portal", "projects", projectId] }),
+  });
+}
+
+// ---- Meetings ----
+export function usePortalMeetings(projectId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "meetings"],
+    queryFn: () => portalMeetingsApi.list(projectId!).then((r) => r.data),
+    enabled: !!projectId,
+  });
+}
+
+export function usePortalMeetingNotes(meetingId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "meetings", meetingId, "notes"],
+    queryFn: () => portalMeetingsApi.notes(meetingId!).then((r) => r.data),
+    enabled: !!meetingId,
+  });
+}
+
+export function useMarkMeetingNoteRead() {
+  return useMutation({
+    mutationFn: (noteId: string) => portalMeetingsApi.markNoteRead(noteId),
+  });
+}
+
+// ---- Project Links ----
+export function usePortalProjectLinks(projectId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "links"],
+    queryFn: () => portalProjectLinksApi.list(projectId!).then((r) => r.data),
+    enabled: !!projectId,
+  });
+}
+
+// ---- Pending on Client ----
+export function usePendingOnClientTasks(projectId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "tasks", "pending-on-client"],
+    queryFn: () => portalTasksApi.pendingOnClient(projectId!).then((r) => r.data),
+    enabled: !!projectId,
+  });
+}
+
+// ---- Credentials ----
+export function usePortalCredentials(projectId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "credentials"],
+    queryFn: () => portalCredentialsApi.list(projectId!).then((r) => r.data),
+    enabled: !!projectId,
+  });
+}
+
+export function useRevealPortalCredential() {
+  return useMutation({
+    mutationFn: (id: string) => portalCredentialsApi.reveal(id).then((r) => r.data.password),
+  });
+}
+
+// ---- Micro-feedback ----
+export function useSubmitPortalFeedback() {
+  return useMutation({
+    mutationFn: portalFeedbackApi.submit,
   });
 }
