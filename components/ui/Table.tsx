@@ -2,16 +2,18 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export function Table({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) {
   return (
-    <div className={`overflow-x-auto rounded-xl border border-(--card-border) ${className}`}>
-      <table className="w-full text-sm">{children}</table>
+    <div
+      className={`table-stack md:overflow-x-auto md:rounded-xl md:border md:border-[var(--card-border)] ${className}`}
+    >
+      <table className="w-full border-collapse text-sm">{children}</table>
     </div>
   );
 }
 
 export function TableHead({ children }: React.PropsWithChildren) {
   return (
-    <thead className="bg-(--muted-bg)">
-      <tr className="text-left text-(--muted)">{children}</tr>
+    <thead className="bg-[var(--surface-sunken)]">
+      <tr className="text-left text-[var(--muted)]">{children}</tr>
     </thead>
   );
 }
@@ -27,7 +29,7 @@ interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
 export function TableRow({ children, className = "", ...props }: TableRowProps) {
   return (
     <tr
-      className={`border-t border-(--card-border) odd:bg-(--card) even:bg-(--muted-bg)/40 transition-colors hover:bg-sky-50/40 ${className}`}
+      className={`bg-[var(--surface)] transition-colors duration-150 md:border-t md:border-[var(--border-subtle)] md:hover:bg-[var(--surface-sunken)] ${className}`}
       {...props}
     >
       {children}
@@ -44,15 +46,34 @@ interface CellProps {
 
 export function Th({ children, align = "left", className = "" }: CellProps) {
   return (
-    <th className={`px-4 py-3 font-medium ${align === "right" ? "text-right" : ""} ${className}`}>
+    <th
+      scope="col"
+      className={`px-4 py-3 text-xs font-medium uppercase tracking-wide ${
+        align === "right" ? "text-right" : "text-left"
+      } ${className}`}
+    >
       {children}
     </th>
   );
 }
 
-export function Td({ children, align = "left", className = "", colSpan }: CellProps) {
+/**
+ * `label` is the column name repeated into the mobile card layout. Pass it on every
+ * data cell so the stacked view below md stays readable; omit it on action cells.
+ */
+export function Td({
+  children,
+  align = "left",
+  className = "",
+  colSpan,
+  label,
+}: CellProps & { label?: string }) {
   return (
-    <td colSpan={colSpan} className={`px-4 py-3 ${align === "right" ? "text-right" : ""} ${className}`}>
+    <td
+      colSpan={colSpan}
+      data-label={label}
+      className={`px-4 py-3 ${align === "right" ? "md:text-right" : ""} ${className}`}
+    >
       {children}
     </td>
   );

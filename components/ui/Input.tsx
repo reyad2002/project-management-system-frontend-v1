@@ -1,33 +1,39 @@
 import { forwardRef } from "react";
-
-const inputBase =
-  "flex h-9 w-full rounded-lg border bg-[var(--card)] px-3 py-1.5 text-sm text-[var(--foreground)] transition-[border-color,box-shadow] duration-200 outline-none placeholder:text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-60";
-const inputBorder = "border-[var(--border)] hover:border-[var(--muted)] focus:border-[var(--ring)] focus:ring-2 focus:ring-[var(--ring)]/20";
-const inputError = "border-[var(--destructive)] focus:border-[var(--destructive)] focus:ring-[var(--destructive)]/20";
+import {
+  fieldBorder,
+  fieldBorderError,
+  fieldControl,
+  fieldError,
+  fieldHeight,
+  fieldId,
+  fieldLabel,
+} from "@/components/ui/field";
 
 export const Input = forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }
 >(({ className = "", label, error, id, ...props }, ref) => {
-  const inputId = id || (label ? label.replace(/\s/g, "-").toLowerCase() : undefined);
+  const inputId = fieldId(id, label);
+  const errorId = error && inputId ? `${inputId}-error` : undefined;
   return (
     <div className="w-full">
       {label && (
-        <label
-          htmlFor={inputId}
-          className="mb-1 block text-xs font-medium text-[var(--muted)]"
-        >
+        <label htmlFor={inputId} className={fieldLabel}>
           {label}
         </label>
       )}
       <input
         ref={ref}
         id={inputId}
-        className={`${inputBase} ${error ? inputError : inputBorder} ${className}`}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={errorId}
+        className={`${fieldControl} ${fieldHeight} ${error ? fieldBorderError : fieldBorder} ${className}`}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-xs text-[var(--destructive)]">{error}</p>
+        <p id={errorId} role="alert" className={fieldError}>
+          {error}
+        </p>
       )}
     </div>
   );

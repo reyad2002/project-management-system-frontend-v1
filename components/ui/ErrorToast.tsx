@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertCircle, X } from "lucide-react";
 import { subscribeToAppErrors } from "@/lib/error-bus";
 
 interface ToastState {
@@ -30,31 +31,35 @@ export function ErrorToast() {
 
   return (
     <div
-      className="pointer-events-none fixed right-4 top-4 flex w-full max-w-sm flex-col gap-2"
-      style={{ zIndex: 9999 }}
+      className="pointer-events-none fixed inset-x-4 top-4 z-[100] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-full sm:max-w-sm"
+      role="region"
+      aria-label="Notifications"
     >
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 shadow-lg"
+          className="animate-scale-in pointer-events-auto flex items-start gap-3 rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive-bg)] px-4 py-3 shadow-md"
           role="alert"
           aria-live="assertive"
         >
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-medium text-red-700">{toast.message}</p>
-            <button
-              type="button"
-              className="text-lg leading-none text-red-500 transition hover:text-red-700"
-              onClick={() =>
-                setToasts((current) =>
-                  current.filter((item) => item.id !== toast.id),
-                )
-              }
-              aria-label="Dismiss error"
-            >
-              ×
-            </button>
-          </div>
+          <AlertCircle
+            aria-hidden
+            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--destructive)]"
+            strokeWidth={2}
+          />
+          <p className="flex-1 text-sm font-medium leading-5 text-[var(--destructive)]">
+            {toast.message}
+          </p>
+          <button
+            type="button"
+            className="-m-1 shrink-0 rounded-md p-1 text-[var(--destructive)] opacity-70 transition-opacity duration-150 hover:opacity-100"
+            onClick={() =>
+              setToasts((current) => current.filter((item) => item.id !== toast.id))
+            }
+            aria-label="Dismiss error"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       ))}
     </div>

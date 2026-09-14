@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useId, useRef } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
   open: boolean;
@@ -13,42 +14,92 @@ interface ModalProps {
 }
 
 const sizeClasses = {
-  sm: "max-w-sm",
-  md: "max-w-md",
-  lg: "max-w-lg",
+  sm: "sm:max-w-sm",
+  md: "sm:max-w-md",
+  lg: "sm:max-w-lg",
 };
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function Modal({ open, onClose, title, description, size = "md", footer, children }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+
+  // Escape to close, Tab cycles within the dialog, and focus returns where it came from.
   useEffect(() => {
     if (!open) return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+
+    document.addEventListener("keydown", handleKeyDown);
+    panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocused?.focus?.();
+    };
   }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
       <div
-        className="animate-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
+        aria-hidden
         onClick={onClose}
-        role="button"
-        tabIndex={-1}
-        aria-label="Close"
+        className="animate-fade-in absolute inset-0 bg-[var(--foreground)]/50"
       />
       <div
-        className={`animate-scale-in relative flex max-h-[90vh] w-full ${sizeClasses[size]} flex-col overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl`}
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        className={`animate-scale-in relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-[var(--card-border)] bg-[var(--surface)] shadow-lg sm:rounded-2xl ${sizeClasses[size]}`}
       >
-        <div className="shrink-0 border-b border-[var(--card-border)] px-5 py-3.5">
-          <h2 className="text-base font-semibold text-[var(--foreground)]">{title}</h2>
-          {description && <div className="mt-1 text-xs text-[var(--muted)]">{description}</div>}
+        <div className="flex shrink-0 items-start gap-4 border-b border-[var(--border-subtle)] px-6 py-4">
+          <div className="min-w-0 flex-1">
+            <h2 id={titleId} className="text-base font-semibold text-[var(--foreground)]">
+              {title}
+            </h2>
+            {description && (
+              <div id={descriptionId} className="mt-1 text-sm leading-5 text-[var(--muted)]">
+                {description}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="-m-2 shrink-0 rounded-md p-2 text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--muted-bg)] hover:text-[var(--foreground)]"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
-        <div className="overflow-y-auto p-5">{children}</div>
+        <div className="overflow-y-auto px-6 py-5">{children}</div>
         {footer && (
-          <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--card-border)] px-5 py-3.5">
+          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-[var(--border-subtle)] bg-[var(--surface-sunken)] px-6 py-4">
             {footer}
           </div>
         )}

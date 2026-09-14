@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useId, useRef } from "react";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface ConfirmDialogProps {
@@ -23,46 +25,79 @@ export function ConfirmDialog({
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+
+  // Focus the non-destructive action first, and restore focus on close.
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    cancelRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      previouslyFocused?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-60 flex items-end justify-center sm:items-center sm:p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        aria-hidden
         onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        role="button"
-        tabIndex={0}
-        aria-label="Close confirmation dialog"
+        className="animate-fade-in absolute inset-0 bg-[var(--foreground)]/50"
       />
 
-      <div className="relative w-full max-w-md rounded-2xl border border-(--card-border) bg-(--card) shadow-2xl">
-        <div className="border-b border-(--card-border) px-6 py-4">
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        className="animate-scale-in relative w-full rounded-t-2xl border border-[var(--card-border)] bg-[var(--surface)] shadow-lg sm:max-w-md sm:rounded-2xl"
+      >
+        <div className="flex gap-4 p-6">
+          <span
+            aria-hidden
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--destructive-bg)] text-[var(--destructive)]"
+          >
+            <AlertTriangle className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 id={titleId} className="text-base font-semibold text-[var(--foreground)]">
+              {title}
+            </h2>
+            {description && (
+              <p id={descriptionId} className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="p-6">
-          {description && (
-            <p className="text-sm text-(--muted)">{description}</p>
-          )}
-          <div className="mt-5 flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              {cancelText}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={onConfirm}
-              loading={isLoading}
-            >
-              {confirmText}
-            </Button>
-          </div>
+        <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--border-subtle)] bg-[var(--surface-sunken)] px-6 py-4">
+          <Button
+            ref={cancelRef}
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            {cancelText}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onConfirm}
+            loading={isLoading}
+          >
+            {confirmText}
+          </Button>
         </div>
       </div>
     </div>

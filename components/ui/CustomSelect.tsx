@@ -2,6 +2,16 @@
 
 import { forwardRef, useRef, useState, useImperativeHandle, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Check, ChevronDown } from "lucide-react";
+import {
+  fieldBorder,
+  fieldBorderError,
+  fieldControl,
+  fieldError,
+  fieldHeight,
+  fieldId,
+  fieldLabel,
+} from "@/components/ui/field";
 
 export interface CustomSelectOption {
   value: string;
@@ -24,10 +34,7 @@ export interface CustomSelectProps {
   searchable?: boolean;
 }
 
-const triggerBase =
-  "flex h-9 w-full items-center justify-between rounded-lg border bg-[var(--card)] px-3 py-1.5 text-left text-sm text-[var(--foreground)] transition-[border-color,box-shadow] duration-200 outline-none placeholder:text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-60";
-const triggerBorder = "border-[var(--border)] hover:border-[var(--muted)] focus:border-[var(--ring)] focus:ring-2 focus:ring-[var(--ring)]/20";
-const triggerError = "border-[var(--destructive)] focus:border-[var(--destructive)] focus:ring-[var(--destructive)]/20";
+const triggerBase = `${fieldControl} ${fieldHeight} flex items-center justify-between gap-2 text-left`;
 
 export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
   (
@@ -59,7 +66,8 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
 
     useImperativeHandle(ref, () => hiddenInputRef.current as HTMLInputElement);
 
-    const selectId = idProp || (label ? label.replace(/\s/g, "-").toLowerCase() : undefined);
+    const selectId = fieldId(idProp, label);
+    const errorId = error && selectId ? `${selectId}-error` : undefined;
     const selectedOption = options.find((o) => o.value === value);
     const displayText = selectedOption ? selectedOption.label : placeholder;
 
@@ -175,7 +183,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
           <label
             id={selectId ? `${selectId}-label` : undefined}
             htmlFor={selectId}
-            className="mb-1 block text-xs font-medium text-[var(--muted)]"
+            className={fieldLabel}
           >
             {label}
           </label>
@@ -197,7 +205,8 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
             aria-haspopup="listbox"
             aria-expanded={open}
             aria-labelledby={label ? `${selectId}-label` : undefined}
-            className={`${triggerBase} ${error ? triggerError : triggerBorder} ${!selectedOption ? "text-[var(--muted)]" : ""}`}
+            aria-describedby={errorId}
+            className={`${triggerBase} ${error ? fieldBorderError : fieldBorder} ${!selectedOption ? "text-[var(--muted)]" : ""}`}
             onClick={() => !disabled && setOpen((o) => !o)}
             onBlur={() => {
               if (!open) onBlur?.();
@@ -205,15 +214,10 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
             onKeyDown={handleTriggerKeyDown}
           >
             <span className="truncate">{displayText}</span>
-            <svg
-              className={`h-4 w-4 shrink-0 text-[var(--muted)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+            <ChevronDown
+              aria-hidden
+              className={`h-4 w-4 shrink-0 text-[var(--muted)] transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+            />
           </button>
           {open &&
             dropdownStyle &&
@@ -221,10 +225,10 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
               <div
                 ref={dropdownRef}
                 style={dropdownStyle}
-                className="z-[70] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-lg"
+                className="animate-scale-in z-[70] overflow-hidden rounded-lg border border-[var(--card-border)] bg-[var(--surface)] shadow-md"
               >
                 {searchable && (
-                  <div className="border-b border-[var(--border)] p-1.5">
+                  <div className="border-b border-[var(--border-subtle)] p-2">
                     <input
                       ref={searchInputRef}
                       type="text"
@@ -232,7 +236,7 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
                       placeholder="Type to search..."
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={handleListKeyDown}
-                      className="w-full rounded-lg border-0 bg-[var(--muted-bg)] px-2.5 py-1.5 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                      className="w-full rounded-md border-0 bg-[var(--muted-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]"
                     />
                   </div>
                 )}
@@ -242,18 +246,18 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
                   onMouseLeave={() => setFocusedIndex(-1)}
                 >
                   {filteredOptions.length === 0 ? (
-                    <li className="px-3 py-2.5 text-sm text-[var(--muted)]">No matches</li>
+                    <li className="px-3 py-2 text-sm text-[var(--muted)]">No matches</li>
                   ) : (
                     filteredOptions.map((opt, i) => (
                       <li
                         key={opt.value}
                         role="option"
                         aria-selected={opt.value === value}
-                        className={`cursor-pointer px-3 py-2.5 text-sm transition-colors ${
+                        className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors duration-150 ${
                           opt.value === value
-                            ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
-                            : "text-[var(--foreground)] hover:bg-[var(--muted-bg)]"
-                        } ${i === focusedIndex ? "bg-[var(--muted-bg)]" : ""}`}
+                            ? "bg-[var(--accent-muted)] font-medium text-[var(--primary)]"
+                            : "text-[var(--foreground)]"
+                        } ${i === focusedIndex && opt.value !== value ? "bg-[var(--muted-bg)]" : ""}`}
                         onMouseEnter={() => setFocusedIndex(i)}
                         onClick={() => {
                           onChange?.(opt.value);
@@ -261,7 +265,10 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
                           onBlur?.();
                         }}
                       >
-                        {opt.label}
+                        <span className="truncate">{opt.label}</span>
+                        {opt.value === value && (
+                          <Check aria-hidden className="h-4 w-4 shrink-0" />
+                        )}
                       </li>
                     ))
                   )}
@@ -271,7 +278,9 @@ export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
             )}
         </div>
         {error && (
-          <p className="mt-1 text-xs text-[var(--destructive)]">{error}</p>
+          <p id={errorId} role="alert" className={fieldError}>
+            {error}
+          </p>
         )}
       </div>
     );

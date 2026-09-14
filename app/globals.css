@@ -2,6 +2,7 @@
 
 /* CodeWars EG brand — pine #004935 / mint #1cb78d, sourced from Final logo.svg */
 :root {
+  /* ---- Brand + semantic colour ---- */
   --background: #f6f8f7;
   --foreground: #0b1f1a;
   --card: #ffffff;
@@ -20,12 +21,27 @@
   --destructive: #b03a30;
   --destructive-hover: #8f2e26;
   --destructive-bg: #fbe7e4;
+  --on-destructive: #ffffff;
   --sidebar-bg: #004935;
   --sidebar-foreground: #f6f8f7;
+  --sidebar-muted: #9fd6c2;
   --sidebar-hover: #0b5c43;
   --sidebar-active: #1cb78d;
   --border: #dce6e2;
+  --border-subtle: #e8efec;
   --ring: #1cb78d;
+  --ring-offset: #f6f8f7;
+
+  /* ---- Elevation planes ---- */
+  --surface: #ffffff;
+  --surface-raised: #fbfcfc;
+  --surface-sunken: #f1f5f3;
+
+  /* ---- Elevation (tinted to the background hue, never neutral black) ---- */
+  --elevation-xs: 0 1px 2px 0 rgb(11 31 26 / 0.05);
+  --elevation-sm: 0 1px 3px 0 rgb(11 31 26 / 0.07), 0 1px 2px -1px rgb(11 31 26 / 0.05);
+  --elevation-md: 0 4px 12px -2px rgb(11 31 26 / 0.08), 0 2px 6px -2px rgb(11 31 26 / 0.05);
+  --elevation-lg: 0 12px 32px -8px rgb(11 31 26 / 0.16), 0 4px 12px -4px rgb(11 31 26 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -48,18 +64,102 @@
     --destructive: #e68579;
     --destructive-hover: #d9695d;
     --destructive-bg: #3a1815;
+    --on-destructive: #2a100d;
     --sidebar-bg: #04241a;
     --sidebar-foreground: #eaf3ef;
+    --sidebar-muted: #8fc4b1;
     --sidebar-hover: #0f3226;
     --sidebar-active: #33d6a6;
     --border: #1f3d33;
+    --border-subtle: #183028;
     --ring: #33d6a6;
+    --ring-offset: #071410;
+
+    --surface: #0e221b;
+    --surface-raised: #142c23;
+    --surface-sunken: #0a1b15;
+
+    --elevation-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+    --elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.30);
+    --elevation-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.35);
+    --elevation-lg: 0 12px 32px -8px rgb(0 0 0 / 0.60), 0 4px 12px -4px rgb(0 0 0 / 0.45);
   }
 }
 
+/* Semantic aliases — resolved lazily, so they follow the active theme automatically. */
+:root {
+  --info: var(--primary);
+  --info-bg: var(--accent-muted);
+  --positive: var(--success);
+  --positive-bg: var(--success-bg);
+  --caution: var(--warning);
+  --caution-bg: var(--warning-bg);
+  --negative: var(--destructive);
+  --negative-bg: var(--destructive-bg);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+}
+
 @theme inline {
+  /* Colour — exposes bg, text and border utilities for every brand token. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-muted-bg: var(--muted-bg);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-muted: var(--accent-muted);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-on-destructive: var(--on-destructive);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-positive: var(--positive);
+  --color-positive-bg: var(--positive-bg);
+  --color-caution: var(--caution);
+  --color-caution-bg: var(--caution-bg);
+  --color-negative: var(--negative);
+  --color-negative-bg: var(--negative-bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-ring: var(--ring);
+
+  /* Radius — one scale. 2xl aliases xl so stray usages collapse into it. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+
+  /* Elevation — subtle shadow paired with a border, never a glow. */
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-lg);
+  --shadow-2xl: var(--elevation-lg);
+
+  /* Type */
   --font-sans: var(--font-body);
   --font-mono: var(--font-data);
 }
@@ -67,17 +167,52 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  letter-spacing: -0.015em;
 }
 
-/* Form focus ring */
-input:focus, select:focus, textarea:focus, button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--ring);
+/* Tabular figures for money, dates and counts, so columns never jitter. */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/*
+ * One focus treatment for the whole app. :where() keeps specificity at zero so a
+ * component can still override it, and outline (rather than box-shadow) leaves
+ * Tailwind's ring utilities free for other uses.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Discoverable but unobtrusive scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--card-border);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
 }
 
 @keyframes fade-in {
@@ -85,31 +220,105 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   to { opacity: 1; }
 }
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  from { opacity: 0; transform: scale(0.98) translateY(4px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.animate-fade-in { animation: fade-in 150ms ease-out; }
-.animate-scale-in { animation: scale-in 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fade-in { animation: fade-in var(--duration-fast) ease-out; }
+.animate-scale-in { animation: scale-in var(--duration-base) var(--ease); }
+
+/*
+ * Tables degrade to card lists below md rather than scrolling sideways. Each Td that
+ * passes a `label` prop emits data-label, which becomes the row-key in the card.
+ */
+@media (max-width: 767px) {
+  .table-stack table,
+  .table-stack tbody,
+  .table-stack tr,
+  .table-stack td {
+    display: block;
+    width: 100%;
+  }
+  .table-stack thead {
+    display: none;
+  }
+  .table-stack tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    padding: 4px 0;
+    box-shadow: var(--elevation-xs);
+  }
+  .table-stack tr:last-child {
+    margin-bottom: 0;
+  }
+  .table-stack td[data-label] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    text-align: right;
+  }
+  .table-stack td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    text-align: left;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .table-stack td:not([data-label]) {
+    text-align: left;
+  }
+}
+
+/* Skeleton shimmer — a light sweep rather than a whole-block opacity pulse. */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--surface-sunken);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--muted) 12%, transparent),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { display: none; }
+}
 
 @keyframes field-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .form-stagger > * {
-  animation: field-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: field-in var(--duration-base) var(--ease) both;
+  animation-delay: calc(min(var(--field-index, 0), 7) * 25ms);
 }
-.form-stagger > *:nth-child(1) { animation-delay: 20ms; }
-.form-stagger > *:nth-child(2) { animation-delay: 50ms; }
-.form-stagger > *:nth-child(3) { animation-delay: 80ms; }
-.form-stagger > *:nth-child(4) { animation-delay: 110ms; }
-.form-stagger > *:nth-child(5) { animation-delay: 140ms; }
-.form-stagger > *:nth-child(6) { animation-delay: 170ms; }
-.form-stagger > *:nth-child(7) { animation-delay: 200ms; }
-.form-stagger > *:nth-child(n+8) { animation-delay: 230ms; }
+.form-stagger > *:nth-child(1) { --field-index: 0; }
+.form-stagger > *:nth-child(2) { --field-index: 1; }
+.form-stagger > *:nth-child(3) { --field-index: 2; }
+.form-stagger > *:nth-child(4) { --field-index: 3; }
+.form-stagger > *:nth-child(5) { --field-index: 4; }
+.form-stagger > *:nth-child(6) { --field-index: 5; }
+.form-stagger > *:nth-child(7) { --field-index: 6; }
+.form-stagger > *:nth-child(n+8) { --field-index: 7; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in, .animate-scale-in, .form-stagger > * { animation: none; }
-}
-*{
-  scrollbar-width: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

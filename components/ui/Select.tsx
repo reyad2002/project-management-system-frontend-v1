@@ -1,4 +1,14 @@
 import { forwardRef } from "react";
+import { ChevronDown } from "lucide-react";
+import {
+  fieldBorder,
+  fieldBorderError,
+  fieldControl,
+  fieldError,
+  fieldHeight,
+  fieldId,
+  fieldLabel,
+} from "@/components/ui/field";
 
 interface SelectOption {
   value: string;
@@ -13,28 +23,41 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className = "", label, error, options, id, ...props }, ref) => {
-    const selectId = id || (label ? label.replace(/\s/g, "-").toLowerCase() : undefined);
+    const selectId = fieldId(id, label);
+    const errorId = error && selectId ? `${selectId}-error` : undefined;
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={selectId} className="mb-1 block text-xs font-medium text-[var(--muted)]">
+          <label htmlFor={selectId} className={fieldLabel}>
             {label}
           </label>
         )}
-        <select
-          ref={ref}
-          id={selectId}
-          className={`h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 text-sm text-[var(--foreground)] focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent ${error ? "border-[var(--destructive)]" : ""} ${className}`}
-          {...props}
-        >
-          <option value="">Select...</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <p className="mt-1 text-xs text-[var(--destructive)]">{error}</p>}
+        <div className="relative">
+          <select
+            ref={ref}
+            id={selectId}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={errorId}
+            className={`${fieldControl} ${fieldHeight} appearance-none pr-10 ${error ? fieldBorderError : fieldBorder} ${className}`}
+            {...props}
+          >
+            <option value="">Select...</option>
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden
+            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]"
+          />
+        </div>
+        {error && (
+          <p id={errorId} role="alert" className={fieldError}>
+            {error}
+          </p>
+        )}
       </div>
     );
   }
