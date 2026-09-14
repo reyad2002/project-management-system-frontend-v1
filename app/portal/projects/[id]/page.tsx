@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/Badge";
 import { Tabs } from "@/components/ui/Tabs";
 import { usePortalProject, useApprovePhase } from "@/hooks/use-portal";
 import { projectStatusVariant } from "@/lib/status-badges";
-import { PortalTimelineView } from "@/components/portal/PortalTimelineView";
 import { PortalMeetingsTab } from "@/components/portal/PortalMeetingsTab";
 import { PortalProjectLinksTab } from "@/components/portal/PortalProjectLinksTab";
 import { PortalCredentialsTab } from "@/components/portal/PortalCredentialsTab";
@@ -132,11 +131,6 @@ export default function PortalProjectDetailPage() {
                       ))}
                     </ul>
                   ),
-              },
-              {
-                key: "timeline",
-                label: "Timeline",
-                content: <PortalTimelineView items={project.timeline.items} />,
               },
               {
                 key: "meetings",

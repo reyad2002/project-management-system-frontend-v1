@@ -7,7 +7,6 @@ import type {
   Invoice,
   Project,
   ClientPaymentSummary,
-  TimelineItem,
   AppNotification,
   Meeting,
   MeetingNote,
@@ -68,7 +67,6 @@ export interface PortalPhase {
 
 export interface PortalProjectDetail extends PortalProject {
   phases: PortalPhase[];
-  timeline: { items: TimelineItem[] };
 }
 
 // ---- Auth ----

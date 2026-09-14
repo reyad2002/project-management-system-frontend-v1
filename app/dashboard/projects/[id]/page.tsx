@@ -13,8 +13,6 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Tabs } from "@/components/ui/Tabs";
 import { KanbanBoard } from "@/components/tasks/KanbanBoard";
-import { GanttChart } from "@/components/tasks/GanttChart";
-import { ProjectTeamTab } from "@/components/team/ProjectTeamTab";
 import { MeetingsTab } from "@/components/meetings/MeetingsTab";
 import { ProjectLinksTab } from "@/components/projects/ProjectLinksTab";
 import { CredentialsTab } from "@/components/credentials/CredentialsTab";
@@ -31,6 +29,7 @@ import { PhaseFormModal } from "./PhaseFormModal";
 import { TaskFormModal } from "./TaskFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InvoiceFormModal } from "@/app/dashboard/invoices/InvoiceFormModal";
+import { PaymentFormModal } from "@/app/dashboard/payments/PaymentFormModal";
 import { invoiceStatusVariant } from "@/lib/status-badges";
 import type { Task } from "@/lib/api";
 
@@ -57,6 +56,7 @@ export default function ProjectDetailPage() {
   const [editingPhaseId, setEditingPhaseId] = useState<string | null>(null);
   const [deletingPhaseId, setDeletingPhaseId] = useState<string | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
@@ -171,16 +171,6 @@ export default function ProjectDetailPage() {
                 ),
               },
               {
-                key: "timeline",
-                label: "Timeline",
-                content: <GanttChart projectId={id} />,
-              },
-              {
-                key: "team",
-                label: "Team",
-                content: <ProjectTeamTab projectId={id} />,
-              },
-              {
                 key: "meetings",
                 label: "Meetings",
                 content: <MeetingsTab projectId={id} clientId={project.client_id} />,
@@ -291,9 +281,15 @@ export default function ProjectDetailPage() {
                 label: "Payments",
                 content: (
                   <div className="space-y-4">
-                    <p className="text-sm text-[var(--muted)]">
-                      Total paid: {formatMoney(totalPaid)} · Remaining: {formatMoney(remaining)}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-[var(--muted)]">
+                        Total paid: {formatMoney(totalPaid)} · Remaining: {formatMoney(remaining)}
+                      </p>
+                      <Button size="sm" onClick={() => setPaymentModalOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add payment
+                      </Button>
+                    </div>
                     {payments.length === 0 ? (
                       <p className="text-[var(--muted)]">No payments yet.</p>
                     ) : (
@@ -353,6 +349,13 @@ export default function ProjectDetailPage() {
       <InvoiceFormModal
         open={invoiceModalOpen}
         onClose={() => setInvoiceModalOpen(false)}
+        defaultProjectId={id}
+      />
+
+      <PaymentFormModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        paymentId={null}
         defaultProjectId={id}
       />
 

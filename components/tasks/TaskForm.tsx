@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { TASK_STATUSES, TASK_PRIORITIES } from "@/lib/constants";
-import { useProjectMembers } from "@/hooks/use-project-members";
+import { useUsersShortList } from "@/hooks/use-users";
 import { usePhases } from "@/hooks/use-phases";
 import { useClientPortalUsers } from "@/hooks/use-client-portal";
 import type { Task } from "@/lib/api";
@@ -69,10 +69,10 @@ export function TaskForm({ task, projectId, clientId, formId, onSubmit }: TaskFo
 
   const assigneeType = watch("assignee_type");
 
-  const { data: membersData } = useProjectMembers(projectId);
+  const { data: usersData } = useUsersShortList();
   const assigneeOptions = [
     { value: "", label: "Unassigned" },
-    ...(membersData?.members?.map((m) => ({ value: m.user_id, label: m.user_name })) ?? []),
+    ...(usersData?.users?.map((u) => ({ value: u.id, label: u.name })) ?? []),
   ];
 
   const { data: portalUsersData } = useClientPortalUsers(clientId);

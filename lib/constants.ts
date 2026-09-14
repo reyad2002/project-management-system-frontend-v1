@@ -61,10 +61,3 @@ export const TASK_PRIORITIES = [
   { value: "high", label: "High" },
   { value: "urgent", label: "Urgent" },
 ] as const;
-
-export const PROJECT_MEMBER_ROLES = [
-  { value: "owner", label: "Owner" },
-  { value: "manager", label: "Manager" },
-  { value: "contributor", label: "Contributor" },
-  { value: "viewer", label: "Viewer" },
-] as const;

@@ -613,53 +613,8 @@ export interface ProjectProfitability {
   budgetVariance: number | null;
 }
 
-// ---- Team & Resource Management ----
-export type ProjectMemberRole = "owner" | "manager" | "contributor" | "viewer";
-
-export interface ProjectMember {
-  id: string;
-  project_id: string;
-  user_id: string;
-  user_name: string;
-  role_in_project: ProjectMemberRole;
-  allocation_percent: number | null;
-  added_at: string;
-}
-
-export interface AddProjectMemberInput {
-  user_id: string;
-  role_in_project?: ProjectMemberRole;
-  allocation_percent?: number;
-}
-
-export interface WorkloadMember {
-  user_id: string;
-  name: string;
-  active_projects_count: number;
-  total_allocation_percent: number;
-  open_tasks_count: number;
-  overdue_tasks_count: number;
-}
-
-// NOTE: not part of the original PMS-PM-FEATURES backend spec — needed to populate the
-// "Add member" picker with company staff. Follows the existing shortList convention.
 export const usersApi = {
   shortList: () => api.get<{ users: { id: string; name: string }[] }>("/api/users/shortList"),
-};
-
-export const projectMembersApi = {
-  list: (projectId: string) =>
-    api.get<{ members: ProjectMember[] }>(`/api/projects/${projectId}/members`),
-  add: (projectId: string, data: AddProjectMemberInput) =>
-    api.post<ProjectMember>(`/api/projects/${projectId}/members`, data),
-  update: (projectId: string, memberId: string, data: Partial<AddProjectMemberInput>) =>
-    api.put<ProjectMember>(`/api/projects/${projectId}/members/${memberId}`, data),
-  remove: (projectId: string, memberId: string) =>
-    api.delete(`/api/projects/${projectId}/members/${memberId}`),
-};
-
-export const teamApi = {
-  workload: () => api.get<{ members: WorkloadMember[] }>("/api/team/workload"),
 };
 
 // ---- Tasks ----
@@ -746,25 +701,6 @@ export const tasksApi = {
   },
 };
 
-// ---- Timeline ----
-export interface TimelineItem {
-  id: string;
-  item_type: "phase" | "task";
-  title: string;
-  start_date: string | null;
-  due_date: string | null;
-  progress_percent: number;
-  parent_task_id: string | null;
-  assignee_id: string | null;
-}
-
-export const timelineApi = {
-  get: (projectId: string) =>
-    api.get<{ items: TimelineItem[]; dependencies: { task_id: string; depends_on_task_id: string }[] }>(
-      `/api/projects/${projectId}/timeline`
-    ),
-};
-
 // ---- Client Portal (company-side management) ----
 export type PortalUserStatus = "invited" | "active" | "disabled";
 
@@ -776,6 +712,9 @@ export interface ClientPortalUser {
   status: PortalUserStatus;
   last_login_at: string | null;
   created_at: string;
+  /** Present while status is "invited" and the invite hasn't expired — lets staff copy/send it manually as a backup to the auto-email. */
+  invite_link?: string | null;
+  invite_expires_at?: string | null;
 }
 
 export const clientPortalApi = {

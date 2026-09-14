@@ -66,7 +66,7 @@ export function MeetingFormModal({ open, onClose, projectId, clientId, meeting }
         </>
       }
     >
-      <MeetingForm meeting={meeting} projectId={projectId} clientId={clientId} formId={FORM_ID} onSubmit={handleSubmit} />
+      <MeetingForm meeting={meeting} clientId={clientId} formId={FORM_ID} onSubmit={handleSubmit} />
     </Modal>
   );
 }

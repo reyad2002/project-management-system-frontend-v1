@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { useProjectMembers } from "@/hooks/use-project-members";
+import { useUsersShortList } from "@/hooks/use-users";
 import { useClientPortalUsers } from "@/hooks/use-client-portal";
 import type { Meeting } from "@/lib/api";
 
@@ -23,7 +23,6 @@ export type MeetingFormData = z.infer<typeof schema>;
 
 interface MeetingFormProps {
   meeting?: Meeting | null;
-  projectId: string;
   clientId: string;
   formId: string;
   onSubmit: (data: MeetingFormData) => Promise<void>;
@@ -44,7 +43,7 @@ function toDatetimeLocal(iso: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function MeetingForm({ meeting, projectId, clientId, formId, onSubmit }: MeetingFormProps) {
+export function MeetingForm({ meeting, clientId, formId, onSubmit }: MeetingFormProps) {
   const {
     register,
     control,
@@ -56,7 +55,7 @@ export function MeetingForm({ meeting, projectId, clientId, formId, onSubmit }: 
     defaultValues,
   });
 
-  const { data: membersData } = useProjectMembers(projectId);
+  const { data: usersData } = useUsersShortList();
   const { data: portalUsersData } = useClientPortalUsers(clientId);
 
   useEffect(() => {
@@ -96,25 +95,25 @@ export function MeetingForm({ meeting, projectId, clientId, formId, onSubmit }: 
             <div>
               <p className="mb-1 text-xs font-medium text-(--muted)">Team attendees</p>
               <div className="max-h-32 space-y-1 overflow-auto rounded-lg border border-(--border) p-2">
-                {membersData?.members?.length ? (
-                  membersData.members.map((m) => (
-                    <label key={m.user_id} className="flex items-center gap-2 text-sm">
+                {usersData?.users?.length ? (
+                  usersData.users.map((u) => (
+                    <label key={u.id} className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={field.value.includes(m.user_id)}
+                        checked={field.value.includes(u.id)}
                         onChange={(e) =>
                           field.onChange(
                             e.target.checked
-                              ? [...field.value, m.user_id]
-                              : field.value.filter((id) => id !== m.user_id)
+                              ? [...field.value, u.id]
+                              : field.value.filter((id) => id !== u.id)
                           )
                         }
                       />
-                      {m.user_name}
+                      {u.name}
                     </label>
                   ))
                 ) : (
-                  <p className="text-xs text-(--muted)">No team members on this project yet.</p>
+                  <p className="text-xs text-(--muted)">No team members yet.</p>
                 )}
               </div>
             </div>

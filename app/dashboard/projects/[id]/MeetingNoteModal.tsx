@@ -78,7 +78,6 @@ export function MeetingNoteModal({ open, onClose, meeting, projectId, clientId }
         )}
 
         <MeetingNoteForm
-          projectId={projectId}
           clientId={clientId}
           formId={FORM_ID}
           onSubmit={async (data) => {

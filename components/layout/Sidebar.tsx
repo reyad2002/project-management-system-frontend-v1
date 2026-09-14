@@ -17,7 +17,6 @@ import {
   Truck,
   Landmark,
   BadgeAlert,
-  UsersRound,
 } from "lucide-react";
 
 interface NavLink {
@@ -35,7 +34,6 @@ const topLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/clients", label: "Clients", icon: Users },
   { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
-  { href: "/dashboard/team", label: "Team", icon: UsersRound },
 ];
 
 const groups: NavGroup[] = [

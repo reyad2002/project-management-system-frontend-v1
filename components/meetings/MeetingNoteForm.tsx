@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CustomSelect } from "@/components/ui/CustomSelect";
-import { useProjectMembers } from "@/hooks/use-project-members";
+import { useUsersShortList } from "@/hooks/use-users";
 import { useClientPortalUsers } from "@/hooks/use-client-portal";
 import type { ActionItemInput } from "@/lib/api";
 
@@ -27,13 +27,12 @@ const schema = z.object({
 export type MeetingNoteFormData = z.infer<typeof schema>;
 
 interface MeetingNoteFormProps {
-  projectId: string;
   clientId: string;
   formId: string;
   onSubmit: (data: { content: string; action_items?: ActionItemInput[] }) => Promise<void>;
 }
 
-export function MeetingNoteForm({ projectId, clientId, formId, onSubmit }: MeetingNoteFormProps) {
+export function MeetingNoteForm({ clientId, formId, onSubmit }: MeetingNoteFormProps) {
   const {
     register,
     control,
@@ -46,7 +45,7 @@ export function MeetingNoteForm({ projectId, clientId, formId, onSubmit }: Meeti
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "action_items" });
-  const { data: membersData } = useProjectMembers(projectId);
+  const { data: usersData } = useUsersShortList();
   const { data: portalUsersData } = useClientPortalUsers(clientId);
 
   const submit = handleSubmit((data) =>
@@ -89,7 +88,7 @@ export function MeetingNoteForm({ projectId, clientId, formId, onSubmit }: Meeti
               const options =
                 assigneeType === "client"
                   ? (portalUsersData?.portalUsers ?? []).map((u) => ({ value: u.id, label: u.name }))
-                  : (membersData?.members ?? []).map((m) => ({ value: m.user_id, label: m.user_name }));
+                  : (usersData?.users ?? []).map((u) => ({ value: u.id, label: u.name }));
               return (
                 <div key={field.id} className="rounded-lg border border-(--card-border) p-3">
                   <div className="grid gap-3 sm:grid-cols-[1fr_auto]">

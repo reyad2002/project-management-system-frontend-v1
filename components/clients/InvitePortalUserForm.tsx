@@ -32,7 +32,8 @@ export function InvitePortalUserForm({ formId, onSubmit }: InvitePortalUserFormP
       <Input label="Contact name *" error={errors.name?.message} {...register("name")} />
       <Input label="Email *" type="email" error={errors.email?.message} {...register("email")} />
       <p className="text-xs text-(--muted)">
-        An invite link will be sent to this email to set up their portal login.
+        An invite link will be emailed to this address automatically — you can also copy it
+        afterwards to send manually (e.g. WhatsApp) as a backup.
       </p>
     </form>
   );

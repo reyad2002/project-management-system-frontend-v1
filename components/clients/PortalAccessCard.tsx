@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { UserPlus, Trash2, KeyRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { UserPlus, Trash2, KeyRound, Copy, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +10,40 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InvitePortalUserForm, type InvitePortalUserFormData } from "@/components/clients/InvitePortalUserForm";
 import { useClientPortalUsers, useInviteClientPortalUser, useRevokeClientPortalUser } from "@/hooks/use-client-portal";
 import { portalUserStatusVariant } from "@/lib/status-badges";
+
+function CopyLinkButton({ link }: { link: string }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+      }}
+    >
+      {copied ? (
+        <>
+          <Check className="mr-1.5 h-3.5 w-3.5 text-(--success)" />
+          Copied
+        </>
+      ) : (
+        <>
+          <Copy className="mr-1.5 h-3.5 w-3.5" />
+          Copy link
+        </>
+      )}
+    </Button>
+  );
+}
 
 const FORM_ID = "invite-portal-user-form";
 
@@ -24,12 +58,16 @@ export function PortalAccessCard({ clientId }: PortalAccessCardProps) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [justInvited, setJustInvited] = useState<{ name: string; link: string } | null>(null);
 
   const portalUsers = data?.portalUsers ?? [];
 
   const handleInvite = async (formData: InvitePortalUserFormData) => {
-    await invite.mutateAsync(formData);
+    const created = await invite.mutateAsync(formData);
     setModalOpen(false);
+    if (created.invite_link) {
+      setJustInvited({ name: created.name, link: created.invite_link });
+    }
   };
 
   return (
@@ -44,7 +82,26 @@ export function PortalAccessCard({ clientId }: PortalAccessCardProps) {
           Invite to portal
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {justInvited && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-(--border) bg-(--accent-muted) px-3 py-2 text-sm">
+            <div className="min-w-0">
+              <p className="font-medium text-(--foreground)">
+                Invite email sent to {justInvited.name}
+              </p>
+              <p className="truncate text-xs text-(--muted)">
+                You can also send this link manually: {justInvited.link}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <CopyLinkButton link={justInvited.link} />
+              <Button type="button" variant="ghost" size="sm" onClick={() => setJustInvited(null)} aria-label="Dismiss">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {portalUsers.length === 0 ? (
           <p className="text-[var(--muted)]">No portal contacts invited yet.</p>
         ) : (
@@ -59,14 +116,17 @@ export function PortalAccessCard({ clientId }: PortalAccessCardProps) {
                   <span className="text-[var(--muted)]">{pu.email}</span>
                   <Badge variant={portalUserStatusVariant[pu.status]}>{pu.status}</Badge>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                  onClick={() => setRevokingId(pu.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {pu.invite_link && <CopyLinkButton link={pu.invite_link} />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                    onClick={() => setRevokingId(pu.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
