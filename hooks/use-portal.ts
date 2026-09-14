@@ -8,7 +8,9 @@ import {
   portalTasksApi,
   portalCredentialsApi,
   portalFeedbackApi,
+  portalFilesApi,
 } from "@/lib/portal-api";
+import type { FileCategory } from "@/lib/api";
 
 export function usePortalProjects() {
   return useQuery({
@@ -115,5 +117,48 @@ export function useRevealPortalCredential() {
 export function useSubmitPortalFeedback() {
   return useMutation({
     mutationFn: portalFeedbackApi.submit,
+  });
+}
+
+// ---- Project Files ----
+export function usePortalFiles(projectId: string | null, params?: { category?: FileCategory }) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "files", params],
+    queryFn: () => portalFilesApi.list(projectId!, params).then((r) => r.data),
+    enabled: !!projectId,
+  });
+}
+
+export function useUploadPortalFile(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { file_name: string; file_url: string; description?: string }) =>
+      portalFilesApi.upload(projectId, data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["portal", "projects", projectId, "files"] }),
+  });
+}
+
+export function useUpdatePortalFileStatus(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; status: "approved" | "needs_changes"; comment?: string }) =>
+      portalFilesApi.updateStatus(id, data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["portal", "projects", projectId, "files"] }),
+  });
+}
+
+export function usePortalFileComments(fileId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "files", fileId, "comments"],
+    queryFn: () => portalFilesApi.comments.list(fileId!).then((r) => r.data),
+    enabled: !!fileId,
+  });
+}
+
+export function useAddPortalFileComment(fileId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (content: string) => portalFilesApi.comments.add(fileId, content).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["portal", "files", fileId, "comments"] }),
   });
 }

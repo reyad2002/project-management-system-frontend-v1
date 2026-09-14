@@ -72,13 +72,13 @@ export function TaskForm({ task, projectId, clientId, formId, onSubmit }: TaskFo
   const { data: usersData } = useUsersShortList();
   const assigneeOptions = [
     { value: "", label: "Unassigned" },
-    ...(usersData?.users?.map((u) => ({ value: u.id, label: u.name })) ?? []),
+    ...(usersData?.users?.map((u) => ({ value: String(u.id), label: u.name })) ?? []),
   ];
 
   const { data: portalUsersData } = useClientPortalUsers(clientId);
   const clientAssigneeOptions = [
     { value: "", label: "Unassigned" },
-    ...(portalUsersData?.portalUsers?.map((u) => ({ value: u.id, label: u.name })) ?? []),
+    ...(portalUsersData?.portalUsers?.map((u) => ({ value: String(u.id), label: u.name })) ?? []),
   ];
 
   const { data: phasesData } = usePhases(projectId, { page: 1, limit: 100 });
@@ -95,9 +95,9 @@ export function TaskForm({ task, projectId, clientId, formId, onSubmit }: TaskFo
         status: task.status,
         priority: task.priority,
         assignee_type: task.assignee_type,
-        assignee_id: task.assignee_id ?? "",
-        client_assignee_id: task.client_assignee_id ?? "",
-        phase_id: task.phase_id ?? "",
+        assignee_id: task.assignee_id != null ? String(task.assignee_id) : "",
+        client_assignee_id: task.client_assignee_id != null ? String(task.client_assignee_id) : "",
+        phase_id: task.phase_id != null ? String(task.phase_id) : "",
         start_date: task.start_date ?? "",
         due_date: task.due_date ?? "",
       });

@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useDashboardStats } from "@/hooks/use-statistics";
+import { UpcomingRenewalsWidget } from "@/components/recurring-revenue/UpcomingRenewalsWidget";
 import { BarChart3, Receipt, TrendingUp } from "lucide-react";
 
 function StatCard({
@@ -165,6 +166,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <UpcomingRenewalsWidget />
 
       <Card>
         <CardHeader>

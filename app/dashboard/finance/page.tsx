@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useFinancialStats, useArAging, useApAging } from "@/hooks/use-statistics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { UpcomingRenewalsWidget } from "@/components/recurring-revenue/UpcomingRenewalsWidget";
+import { SubscriptionsComparisonWidget } from "@/components/recurring-expenses/SubscriptionsComparisonWidget";
 import {
   TrendingUp,
   TrendingDown,
@@ -307,6 +309,9 @@ export default function FinancePage() {
           </CardContent>
         </Card>
       </div>
+
+      <SubscriptionsComparisonWidget />
+      <UpcomingRenewalsWidget />
     </div>
   );
 }

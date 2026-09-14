@@ -16,6 +16,7 @@ import { KanbanBoard } from "@/components/tasks/KanbanBoard";
 import { MeetingsTab } from "@/components/meetings/MeetingsTab";
 import { ProjectLinksTab } from "@/components/projects/ProjectLinksTab";
 import { CredentialsTab } from "@/components/credentials/CredentialsTab";
+import { FilesTab } from "@/components/files/FilesTab";
 import {
   ArrowLeft,
   Calendar,
@@ -179,6 +180,11 @@ export default function ProjectDetailPage() {
                 key: "links",
                 label: "Links",
                 content: <ProjectLinksTab projectId={id} />,
+              },
+              {
+                key: "files",
+                label: "Files",
+                content: <FilesTab projectId={id} />,
               },
               {
                 key: "phases",

@@ -728,17 +728,21 @@ export const clientPortalApi = {
 export type NotificationType =
   | "meeting_reminder"
   | "meeting_note_added"
+  | "meeting_cancelled"
   | "action_item_assigned"
   | "phase_approved"
   | "task_assigned_to_client"
-  | "feedback_requested";
+  | "feedback_requested"
+  | "file_uploaded"
+  | "file_status_changed"
+  | "recurring_payment_due";
 
 export interface AppNotification {
   id: string;
   type: NotificationType;
   title: string;
   body: string | null;
-  related_type: "meeting" | "task" | "phase" | "invoice" | null;
+  related_type: "meeting" | "task" | "phase" | "invoice" | "file" | "recurring_revenue" | "recurring_expense" | null;
   related_id: string | null;
   is_read: boolean;
   read_at: string | null;
@@ -891,4 +895,224 @@ export interface FeedbackEntry {
 export const feedbackApi = {
   list: (projectId: string) =>
     api.get<{ feedback: FeedbackEntry[]; averageRating: number }>(`/api/projects/${projectId}/feedback`),
+};
+
+// ---- Project Files ----
+// NOTE: the real backend stores a URL + metadata only — there is no binary upload endpoint,
+// so "uploading" a file here means pasting a link to where it already lives (Drive, S3...).
+export type FileCategory = "deliverable" | "client_upload";
+export type FileStatus = "pending_review" | "approved" | "needs_changes" | "rejected";
+export type FileUploaderType = "team_member" | "client";
+
+export interface ProjectFile {
+  id: string;
+  project_id: string;
+  uploaded_by_type: FileUploaderType;
+  uploaded_by_id: string;
+  category: FileCategory;
+  file_name: string;
+  description: string | null;
+  file_url: string;
+  status: FileStatus | null; // null for category="client_upload" (no review workflow)
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface FileComment {
+  id: string;
+  file_id: string;
+  author_type: FileUploaderType;
+  author_id: string;
+  comment: string;
+  created_at: string;
+}
+
+export interface CreateProjectFileInput {
+  file_name: string;
+  file_url: string;
+  description?: string;
+}
+
+export const filesApi = {
+  list: (projectId: string, params?: { category?: FileCategory; status?: FileStatus }) =>
+    api.get<{ files: ProjectFile[] }>(`/api/projects/${projectId}/files`, { params }),
+  upload: (projectId: string, data: CreateProjectFileInput) =>
+    api.post<ProjectFile>(`/api/projects/${projectId}/files`, data),
+  comments: {
+    list: (fileId: string) => api.get<{ comments: FileComment[] }>(`/api/files/${fileId}/comments`),
+    add: (fileId: string, content: string) =>
+      api.post<FileComment>(`/api/files/${fileId}/comments`, { content }),
+  },
+};
+
+// ---- Recurring Revenue (client hosting/subscriptions) ----
+export type RecurringRevenueType = "hosting" | "maintenance" | "other";
+export type BillingCycle = "monthly" | "yearly";
+export type RecurringRevenueStatus = "active" | "cancelled" | "overdue";
+
+export interface RecurringRevenue {
+  id: string;
+  client_id: string;
+  client_name: string;
+  project_id: string | null;
+  project_title: string | null;
+  type: RecurringRevenueType;
+  amount: number;
+  currency?: string;
+  billing_cycle: BillingCycle;
+  next_renewal_date: string;
+  last_paid_date: string | null;
+  status: RecurringRevenueStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CreateRecurringRevenueInput {
+  client_id: string;
+  project_id?: string | null;
+  type: RecurringRevenueType;
+  amount: number;
+  billing_cycle: BillingCycle;
+  next_renewal_date: string;
+  notes?: string;
+}
+
+export interface HostingSummaryItem {
+  id: string;
+  type: string;
+  client_name: string | null;
+  amount: number;
+  next_renewal_date: string;
+  status: RecurringRevenueStatus;
+}
+
+export interface HostingSummary {
+  upcomingTotal: number;
+  upcomingCount: number;
+  overdueTotal: number;
+  overdueCount: number;
+  items: HostingSummaryItem[];
+}
+
+export const recurringRevenueApi = {
+  list: (params?: { status?: RecurringRevenueStatus; client_id?: string; project_id?: string }) =>
+    api.get<{ recurringRevenue: RecurringRevenue[] }>("/api/recurring-revenue", { params }),
+  create: (data: CreateRecurringRevenueInput) => api.post<RecurringRevenue>("/api/recurring-revenue", data),
+  update: (id: string, data: Partial<CreateRecurringRevenueInput> & { status?: RecurringRevenueStatus }) =>
+    api.patch<RecurringRevenue>(`/api/recurring-revenue/${id}`, data),
+  delete: (id: string) => api.delete(`/api/recurring-revenue/${id}`),
+  upcoming: (days?: number) =>
+    api.get<{ recurringRevenue: RecurringRevenue[] }>("/api/recurring-revenue/upcoming", { params: { days } }),
+  overdue: () => api.get<{ recurringRevenue: RecurringRevenue[] }>("/api/recurring-revenue/overdue"),
+  markPaid: (id: string) => api.post<RecurringRevenue>(`/api/recurring-revenue/${id}/mark-paid`),
+};
+
+// ---- Recurring Expenses (server/AI subscriptions the company pays) ----
+export type RecurringExpenseType = "hosting_cost" | "ai_subscription" | "tool_subscription" | "other";
+export type RecurringExpenseStatus = "active" | "cancelled";
+
+export interface RecurringExpense {
+  id: string;
+  name: string;
+  linked_project_id: string | null;
+  project_title: string | null;
+  type: RecurringExpenseType;
+  amount: number;
+  currency?: string;
+  billing_cycle: BillingCycle;
+  next_due_date: string;
+  last_paid_date: string | null;
+  status: RecurringExpenseStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CreateRecurringExpenseInput {
+  name: string;
+  linked_project_id?: string | null;
+  type: RecurringExpenseType;
+  amount: number;
+  billing_cycle: BillingCycle;
+  next_due_date: string;
+  notes?: string;
+}
+
+export const recurringExpensesApi = {
+  list: (params?: { status?: RecurringExpenseStatus; linked_project_id?: string }) =>
+    api.get<{ recurringExpenses: RecurringExpense[] }>("/api/recurring-expenses", { params }),
+  create: (data: CreateRecurringExpenseInput) => api.post<RecurringExpense>("/api/recurring-expenses", data),
+  update: (id: string, data: Partial<CreateRecurringExpenseInput> & { status?: RecurringExpenseStatus }) =>
+    api.patch<RecurringExpense>(`/api/recurring-expenses/${id}`, data),
+  delete: (id: string) => api.delete(`/api/recurring-expenses/${id}`),
+  upcoming: (days?: number) =>
+    api.get<{ recurringExpenses: RecurringExpense[] }>("/api/recurring-expenses/upcoming", { params: { days } }),
+  overdue: () => api.get<{ recurringExpenses: RecurringExpense[] }>("/api/recurring-expenses/overdue"),
+  markPaid: (id: string) => api.post<RecurringExpense>(`/api/recurring-expenses/${id}/mark-paid`),
+};
+
+export const financeSummaryApi = {
+  hosting: () => api.get<HostingSummary>("/api/finance/hosting-summary"),
+};
+
+// ---- Investments ----
+export type InvestmentStatus = "active" | "closed";
+export type InvestmentReturnCycle = "one_time" | "monthly" | "yearly";
+
+export interface Investment {
+  id: string;
+  name: string;
+  amount_invested: number;
+  currency?: string;
+  investment_date: string;
+  expected_return: number | null;
+  return_cycle: InvestmentReturnCycle | null;
+  status: InvestmentStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface InvestmentReturn {
+  id: string;
+  investment_id: string;
+  amount: number;
+  received_date: string;
+  created_at: string;
+}
+
+export interface InvestmentSummaryRow {
+  investment_id: string;
+  name: string;
+  amountInvested: number;
+  totalReturns: number;
+  returnPercent: number;
+}
+
+export interface InvestmentsSummary {
+  totalInvested: number;
+  totalReturns: number;
+  overallReturnPercent: number;
+  investments: InvestmentSummaryRow[];
+}
+
+export interface CreateInvestmentInput {
+  name: string;
+  amount_invested: number;
+  investment_date: string;
+  expected_return?: number;
+  return_cycle?: InvestmentReturnCycle;
+  status?: InvestmentStatus;
+  notes?: string;
+}
+
+export const investmentsApi = {
+  list: () => api.get<{ investments: Investment[] }>("/api/investments"),
+  get: (id: string) => api.get<Investment>(`/api/investments/${id}`),
+  summary: () => api.get<InvestmentsSummary>("/api/investments/summary"),
+  create: (data: CreateInvestmentInput) => api.post<Investment>("/api/investments", data),
+  update: (id: string, data: Partial<CreateInvestmentInput> & { status?: InvestmentStatus }) =>
+    api.patch<Investment>(`/api/investments/${id}`, data),
+  delete: (id: string) => api.delete(`/api/investments/${id}`),
+  listReturns: (id: string) => api.get<{ returns: InvestmentReturn[] }>(`/api/investments/${id}/returns`),
+  addReturn: (id: string, data: { amount: number; received_date: string }) =>
+    api.post<InvestmentReturn>(`/api/investments/${id}/returns`, data),
 };

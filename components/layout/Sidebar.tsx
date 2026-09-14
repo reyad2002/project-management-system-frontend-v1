@@ -17,6 +17,8 @@ import {
   Truck,
   Landmark,
   BadgeAlert,
+  CalendarClock,
+  TrendingUp,
 } from "lucide-react";
 
 interface NavLink {
@@ -44,12 +46,14 @@ const groups: NavGroup[] = [
       { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
       { href: "/dashboard/expenses", label: "Expenses", icon: Receipt },
       { href: "/dashboard/vendors", label: "Vendors", icon: Truck },
+      { href: "/dashboard/hosting", label: "Hosting", icon: CalendarClock },
     ],
   },
   {
     label: "Reports",
     items: [
       { href: "/dashboard/finance", label: "Finance overview", icon: Wallet },
+      { href: "/dashboard/finance/investments", label: "Investments", icon: TrendingUp },
       { href: "/dashboard/invoices/ar-aging", label: "AR aging", icon: Landmark },
       { href: "/dashboard/invoices/ap-aging", label: "AP aging", icon: BadgeAlert },
     ],

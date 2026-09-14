@@ -100,12 +100,12 @@ export function MeetingForm({ meeting, clientId, formId, onSubmit }: MeetingForm
                     <label key={u.id} className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={field.value.includes(u.id)}
+                        checked={field.value.includes(String(u.id))}
                         onChange={(e) =>
                           field.onChange(
                             e.target.checked
-                              ? [...field.value, u.id]
-                              : field.value.filter((id) => id !== u.id)
+                              ? [...field.value, String(u.id)]
+                              : field.value.filter((id) => id !== String(u.id))
                           )
                         }
                       />
@@ -131,12 +131,12 @@ export function MeetingForm({ meeting, clientId, formId, onSubmit }: MeetingForm
                     <label key={u.id} className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={field.value.includes(u.id)}
+                        checked={field.value.includes(String(u.id))}
                         onChange={(e) =>
                           field.onChange(
                             e.target.checked
-                              ? [...field.value, u.id]
-                              : field.value.filter((id) => id !== u.id)
+                              ? [...field.value, String(u.id)]
+                              : field.value.filter((id) => id !== String(u.id))
                           )
                         }
                       />

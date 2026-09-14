@@ -87,8 +87,8 @@ export function MeetingNoteForm({ clientId, formId, onSubmit }: MeetingNoteFormP
               const assigneeType = watch(`action_items.${index}.assignee_type`);
               const options =
                 assigneeType === "client"
-                  ? (portalUsersData?.portalUsers ?? []).map((u) => ({ value: u.id, label: u.name }))
-                  : (usersData?.users ?? []).map((u) => ({ value: u.id, label: u.name }));
+                  ? (portalUsersData?.portalUsers ?? []).map((u) => ({ value: String(u.id), label: u.name }))
+                  : (usersData?.users ?? []).map((u) => ({ value: String(u.id), label: u.name }));
               return (
                 <div key={field.id} className="rounded-lg border border-(--card-border) p-3">
                   <div className="grid gap-3 sm:grid-cols-[1fr_auto]">

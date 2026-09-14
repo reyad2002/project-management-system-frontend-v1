@@ -14,6 +14,9 @@ import type {
   Task,
   Credential,
   FeedbackRelatedType,
+  ProjectFile,
+  FileCategory,
+  FileComment,
 } from "./api";
 
 /**
@@ -129,4 +132,19 @@ export const portalCredentialsApi = {
 export const portalFeedbackApi = {
   submit: (data: { project_id: string; related_type: FeedbackRelatedType; related_id: string; rating: number }) =>
     portalApi.post("/api/portal/feedback", data),
+};
+
+// ---- Project Files ----
+export const portalFilesApi = {
+  list: (projectId: string, params?: { category?: FileCategory }) =>
+    portalApi.get<{ files: ProjectFile[] }>(`/api/portal/projects/${projectId}/files`, { params }),
+  upload: (projectId: string, data: { file_name: string; file_url: string; description?: string }) =>
+    portalApi.post<ProjectFile>(`/api/portal/projects/${projectId}/files`, data),
+  updateStatus: (id: string, data: { status: "approved" | "needs_changes"; comment?: string }) =>
+    portalApi.patch<ProjectFile>(`/api/portal/files/${id}/status`, data),
+  comments: {
+    list: (fileId: string) => portalApi.get<{ comments: FileComment[] }>(`/api/portal/files/${fileId}/comments`),
+    add: (fileId: string, content: string) =>
+      portalApi.post<FileComment>(`/api/portal/files/${fileId}/comments`, { content }),
+  },
 };

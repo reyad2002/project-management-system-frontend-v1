@@ -13,6 +13,7 @@ import { projectStatusVariant } from "@/lib/status-badges";
 import { PortalMeetingsTab } from "@/components/portal/PortalMeetingsTab";
 import { PortalProjectLinksTab } from "@/components/portal/PortalProjectLinksTab";
 import { PortalCredentialsTab } from "@/components/portal/PortalCredentialsTab";
+import { PortalFilesTab } from "@/components/portal/PortalFilesTab";
 import { PendingOnClientTab } from "@/components/portal/PendingOnClientTab";
 import { FeedbackModal } from "@/components/portal/FeedbackModal";
 
@@ -146,6 +147,11 @@ export default function PortalProjectDetailPage() {
                 key: "links",
                 label: "Links",
                 content: <PortalProjectLinksTab projectId={id} />,
+              },
+              {
+                key: "files",
+                label: "Files",
+                content: <PortalFilesTab projectId={id} />,
               },
               {
                 key: "credentials",

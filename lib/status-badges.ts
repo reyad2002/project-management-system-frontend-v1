@@ -6,6 +6,10 @@ import type {
   TaskStatus,
   TaskPriority,
   PortalUserStatus,
+  FileStatus,
+  RecurringRevenueStatus,
+  RecurringExpenseStatus,
+  InvestmentStatus,
 } from "@/lib/api";
 
 export const invoiceStatusVariant: Record<InvoiceStatus, BadgeVariant> = {
@@ -52,4 +56,27 @@ export const portalUserStatusVariant: Record<PortalUserStatus, BadgeVariant> = {
   invited: "warning",
   active: "success",
   disabled: "cancelled",
+};
+
+export const fileStatusVariant: Record<FileStatus, BadgeVariant> = {
+  pending_review: "neutral",
+  approved: "success",
+  needs_changes: "danger",
+  rejected: "cancelled",
+};
+
+export const recurringRevenueStatusVariant: Record<RecurringRevenueStatus, BadgeVariant> = {
+  active: "success",
+  overdue: "danger",
+  cancelled: "cancelled",
+};
+
+export const recurringExpenseStatusVariant: Record<RecurringExpenseStatus, BadgeVariant> = {
+  active: "success",
+  cancelled: "cancelled",
+};
+
+export const investmentStatusVariant: Record<InvestmentStatus, BadgeVariant> = {
+  active: "info",
+  closed: "cancelled",
 };
