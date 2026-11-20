@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { lastUsed, localToday } from "@/lib/last-used";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
@@ -49,6 +50,8 @@ interface ExpenseFormProps {
   expense?: Expense | null;
   formId: string;
   onSubmit: (data: ExpenseFormData) => Promise<void>;
+  /** New expense on this project (opened from the project page). */
+  defaultProjectId?: string;
 }
 
 const defaultEmpty: ExpenseFormData = {
@@ -62,10 +65,22 @@ const defaultEmpty: ExpenseFormData = {
   cost_category: "other",
 };
 
+/** A new expense starts today, on the type and category used last time. */
+function newExpense(projectId?: string): ExpenseFormData {
+  return {
+    ...defaultEmpty,
+    expense_date: localToday(),
+    type: lastUsed("expense_type", defaultEmpty.type, ["direct", "operational"]),
+    cost_category: lastUsed("expense_category", defaultEmpty.cost_category) as ExpenseFormData["cost_category"],
+    project_id: projectId ?? "",
+  };
+}
+
 export function ExpenseForm({
   expense,
   formId,
   onSubmit,
+  defaultProjectId,
 }: ExpenseFormProps) {
   const {
     register,
@@ -76,6 +91,7 @@ export function ExpenseForm({
     setValue,
     formState: { errors },
   } = useForm<ExpenseFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });
@@ -107,9 +123,9 @@ export function ExpenseForm({
         cost_category: expense.cost_category ?? "other",
       });
     } else {
-      reset(defaultEmpty);
+      reset(newExpense(defaultProjectId));
     }
-  }, [expense, reset]);
+  }, [expense, reset, defaultProjectId]);
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">

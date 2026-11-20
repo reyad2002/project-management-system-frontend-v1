@@ -9,9 +9,10 @@ import type {
   ProjectType,
   RecurringExpense,
   RecurringRevenue,
+  Task,
   Vendor,
 } from "./api";
-import { BILLING_MODELS, COST_CATEGORIES, EXPENSE_TYPES, PAYMENT_METHODS, PROJECT_TYPES } from "./constants";
+import { BILLING_MODELS, COST_CATEGORIES, EXPENSE_TYPES, PAYMENT_METHODS, PROJECT_TYPES, TASK_PRIORITIES, TASK_STATUSES } from "./constants";
 import { REPORT_METRICS } from "../components/reports/reportMetrics";
 import type { ExportColumn } from "./export";
 
@@ -201,3 +202,19 @@ export function fileSafe(name: string | undefined, fallback: string): string {
   const cleaned = (name ?? "").trim().replace(/[\\/:*?"<>|\s]+/g, "-").replace(/^-+|-+$/g, "");
   return cleaned || fallback;
 }
+
+export const taskColumns: ExportColumn<Task>[] = [
+  { header: "ID", value: (r) => r.id, kind: "number", width: 8 },
+  { header: "Title", value: (r) => r.title, width: 36 },
+  { header: "Project", value: (r) => r.project_title ?? "Internal", width: 28 },
+  { header: "Status", value: (r) => labelOf(TASK_STATUSES, r.status), width: 14 },
+  { header: "Priority", value: (r) => labelOf(TASK_PRIORITIES, r.priority), width: 10 },
+  { header: "Assignee", value: (r) => (r.assignee_type === "client" ? r.client_assignee_name : r.assignee_name), width: 20 },
+  { header: "Start date", value: (r) => r.start_date },
+  { header: "Due date", value: (r) => r.due_date },
+  { header: "Completed", value: (r) => r.completed_at?.slice(0, 10) },
+  { header: "Checklist", value: (r) => (r.checklist_progress.total ? `${r.checklist_progress.done}/${r.checklist_progress.total}` : ""), width: 10 },
+  { header: "Sub-tasks", value: (r) => r.subtasks_count, kind: "number", width: 10 },
+  { header: "From meeting", value: (r) => yesNo(r.source === "meeting"), width: 12 },
+  { header: "Created", value: (r) => r.created_at?.slice(0, 10) },
+];

@@ -8,6 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PortalAccessCard } from "@/components/clients/PortalAccessCard";
 import { ClientFormModal } from "@/app/dashboard/clients/ClientFormModal";
+import { ProjectFormModal } from "@/app/dashboard/projects/ProjectFormModal";
+import { useClientsShortList } from "@/hooks/use-clients";
+import { useClientHealth } from "@/hooks/use-insights";
+import { ContactLog } from "@/components/clients/ContactLog";
+import { HealthBadge } from "@/components/clients/HealthBadge";
+import { useAuth } from "@/lib/auth-context";
+import { can } from "@/lib/permissions";
 import {
   ArrowLeft,
   Mail,
@@ -33,6 +40,12 @@ export default function ClientDetailPage() {
   const { data: client, isLoading, error } = useClient(id);
   const { data: paymentSummary } = useClientPaymentSummary(id);
   const [editOpen, setEditOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const { data: clientsList } = useClientsShortList();
+  const { user } = useAuth();
+  const financeAllowed = can(user, "finance");
+  const { data: healthData } = useClientHealth(id, { enabled: financeAllowed });
+  const health = healthData?.clients[0];
 
   if (isLoading) {
     return (
@@ -49,7 +62,7 @@ export default function ClientDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-4"
+          className="ms-4"
           onClick={() => router.push("/dashboard/clients")}
         >
           Back to list
@@ -63,12 +76,12 @@ export default function ClientDetailPage() {
       <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/clients">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back
           </Button>
         </Link>
         <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
+          <Pencil className="me-2 h-4 w-4" />
           Edit client
         </Button>
       </div>
@@ -154,13 +167,48 @@ export default function ClientDetailPage() {
         </Card>
       )}
 
+      {health && (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>Client health</CardTitle>
+              <HealthBadge level={health.level} score={health.score} />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {health.reasons.length === 0 ? (
+              <p className="text-sm text-(--muted)">Nothing to worry about: no late invoices, no late projects, recent contact.</p>
+            ) : (
+              <ul className="space-y-1 text-sm">
+                {health.reasons.map((r) => (
+                  <li key={r.code} className={r.severity === "good" ? "text-(--success)" : "text-(--muted)"}>
+                    {r.severity === "good" ? "✓" : "•"} {r.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <ContactLog clientId={String(client.id)} />
+
       <PortalAccessCard clientId={client.id} />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Link href={`/dashboard/projects?client_id=${client.id}`}>
           <Button variant="secondary">View projects</Button>
         </Link>
+        <Button onClick={() => setNewProjectOpen(true)}>New project for {client.name}</Button>
       </div>
+
+      <ProjectFormModal
+        open={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+        projectId={null}
+        clientOptions={(clientsList?.clients ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
+        defaultClientId={String(client.id)}
+      />
 
       <ClientFormModal open={editOpen} onClose={() => setEditOpen(false)} clientId={client.id} />
     </div>

@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data } = await authApi.login(email, password);
       Cookies.set(TOKEN_KEY, data.token, { sameSite: "lax", expires: 7 });
       setUser(data.user);
-      router.push("/dashboard");
+      router.push("/dashboard/today");
     },
     [router]
   );

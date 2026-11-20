@@ -14,6 +14,7 @@ export function useProjectLinks(projectId: string | null) {
 export function useCreateProjectLink(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Link added" },
     mutationFn: (data: CreateProjectLinkInput) => projectLinksApi.create(projectId, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "links"] }),
   });
@@ -22,6 +23,7 @@ export function useCreateProjectLink(projectId: string) {
 export function useDeleteProjectLink(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Link removed" },
     mutationFn: (id: string) => projectLinksApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "links"] }),
   });

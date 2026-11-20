@@ -7,7 +7,9 @@ import { useProjectsShortList } from "@/hooks/use-projects";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { SavedFilters, setOnly } from "@/components/ui/SavedFilters";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { fetchAllPages } from "@/lib/export";
 import { paymentColumns } from "@/lib/export-columns";
@@ -128,7 +130,7 @@ export default function PaymentsPage() {
             setModalOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add payment
         </Button>
       </div>
@@ -136,7 +138,18 @@ export default function PaymentsPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-          <FilterDrawer
+          <SavedFilters
+            page="payments"
+            current={setOnly({ project_id: projectId, client_id: clientId, from: fromDate, to: toDate })}
+            onApply={(p) => {
+              setProjectId(String(p.project_id ?? ""));
+              setClientId(String(p.client_id ?? ""));
+              setFromDate(String(p.from ?? ""));
+              setToDate(String(p.to ?? ""));
+              setPage(1);
+            }}
+          />
+<FilterDrawer
             activeCount={[projectId, clientId, fromDate, toDate].filter(Boolean).length}
             onClear={() => {
               setProjectId("");
@@ -219,9 +232,10 @@ export default function PaymentsPage() {
               </TableBody>
             </Table>
           ) : !data?.payments?.length ? (
-            <p className="py-8 text-center text-(--muted)">
-              No payments found.
-            </p>
+            <EmptyState title="No payments found" description="Record a payment, or loosen the filters." action={<Button size="sm" onClick={() => {
+                setEditingId(null);
+                setModalOpen(true);
+              }}><Plus className="me-2 h-4 w-4" />Add payment</Button>} />
           ) : (
             <>
               <Table>

@@ -2,10 +2,12 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/Button";
-import { KeyRound, LogOut, Menu, User } from "lucide-react";
+import { KeyRound, LogOut, Menu } from "lucide-react";
 import { ChangePasswordModal } from "@/components/auth/ChangePasswordModal";
 import { useEffect, useRef, useState } from "react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { QuickCreate } from "@/components/layout/QuickCreate";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/use-notifications";
 
 interface HeaderProps {
@@ -73,6 +75,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           className="relative flex items-center gap-2 md:gap-3"
           ref={profileRef}
         >
+          <QuickCreate />
+          <GlobalSearch />
           <NotificationBell
             notifications={notificationsData?.notifications ?? []}
             unreadCount={notificationsData?.unreadCount ?? 0}
@@ -91,7 +95,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 top-12 z-40 w-64 rounded-2xl border border-(--border) bg-(--card) p-3 shadow-xl">
+            <div className="absolute end-0 top-12 z-40 w-64 rounded-2xl border border-(--border) bg-(--card) p-3 shadow-xl">
               <div className="flex items-start gap-3 border-b border-(--border) pb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--primary) text-sm font-semibold text-white shadow-sm">
                   {userInitial}
@@ -118,7 +122,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     setPasswordOpen(true);
                   }}
                 >
-                  <KeyRound className="mr-2 h-4 w-4" />
+                  <KeyRound className="me-2 h-4 w-4" />
                   Change password
                 </Button>
                 <Button
@@ -130,22 +134,12 @@ export function Header({ onMenuClick }: HeaderProps) {
                     logout();
                   }}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="me-2 h-4 w-4" />
                   Logout
                 </Button>
               </div>
             </div>
           )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0 md:hidden"
-            onClick={() => logout()}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
         </div>
       </div>
     </header>

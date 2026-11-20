@@ -34,7 +34,7 @@ export interface CustomSelectProps {
   searchable?: boolean;
 }
 
-const triggerBase = `${fieldControl} ${fieldHeight} flex items-center justify-between gap-2 text-left`;
+const triggerBase = `${fieldControl} ${fieldHeight} flex items-center justify-between gap-2 text-start`;
 
 export const CustomSelect = forwardRef<HTMLInputElement, CustomSelectProps>(
   (

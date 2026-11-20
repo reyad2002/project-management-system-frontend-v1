@@ -9,12 +9,18 @@ export const ACCESS = {
   accounts: ["owner", "admin"], // create / disable accounts, audit log
   finance: ["owner", "admin", "manager", "accountant"], // invoices, payments, expenses, reports
   credentials: ["owner", "admin", "manager", "member"], // project credentials (not accountants)
+  taskAdmin: ["owner", "admin", "manager"], // task templates and recurring tasks
 } as const satisfies Record<string, readonly UserRole[]>;
 
 export type Area = keyof typeof ACCESS;
 
 export function can(user: Pick<User, "role"> | null | undefined, area: Area): boolean {
   return !!user && (ACCESS[area] as readonly string[]).includes(user.role);
+}
+
+/** Managers and above see every task; everyone else only the tasks assigned to or created by them. */
+export function canSeeAllTasks(user: Pick<User, "role"> | null | undefined): boolean {
+  return !!user && ["owner", "admin", "manager"].includes(user.role);
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {

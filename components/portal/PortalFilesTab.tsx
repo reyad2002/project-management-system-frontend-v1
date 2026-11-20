@@ -122,7 +122,7 @@ export function PortalFilesTab({ projectId }: PortalFilesTabProps) {
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-(--foreground)">Your uploads</h3>
           <Button size="sm" onClick={() => setUploadOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             Upload file
           </Button>
         </div>

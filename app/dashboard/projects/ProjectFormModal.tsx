@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useProject, useCreateProject, useUpdateProject } from "@/hooks/use-projects";
 import { ProjectForm, type ProjectFormData } from "@/components/projects/ProjectForm";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { ClientFormModal } from "@/app/dashboard/clients/ClientFormModal";
 
 const FORM_ID = "project-form";
 
@@ -12,9 +14,13 @@ interface ProjectFormModalProps {
   onClose: () => void;
   projectId: string | null;
   clientOptions: { value: string; label: string }[];
+  /** New project for this client. */
+  defaultClientId?: string;
 }
 
-export function ProjectFormModal({ open, onClose, projectId, clientOptions }: ProjectFormModalProps) {
+export function ProjectFormModal({ open, onClose, projectId, clientOptions, defaultClientId }: ProjectFormModalProps) {
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [created, setCreated] = useState<{ id: string; name: string } | null>(null);
   const { data: project } = useProject(projectId ?? null);
   const createProject = useCreateProject();
   const updateProject = useUpdateProject(projectId ?? "");
@@ -33,6 +39,8 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
       type: data.type,
       billing_model: data.billing_model,
       ad_budget: data.ad_budget ? Number(data.ad_budget) : 0,
+      // empty clears the budget
+      budget_cost: data.budget_cost === "" || data.budget_cost === undefined ? null : Number(data.budget_cost),
       is_test: data.is_test,
     };
     if (projectId && project) {
@@ -62,7 +70,17 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
         </>
       }
     >
-      <ProjectForm project={project ?? undefined} clientOptions={clientOptions} formId={FORM_ID} onSubmit={handleSubmit} />
+      <ProjectForm
+        project={project ?? undefined}
+        // A client made a moment ago may not be in the list yet: add it so the field can show it.
+        clientOptions={created && !clientOptions.some((c) => c.value === created.id) ? [...clientOptions, { value: created.id, label: created.name }] : clientOptions}
+        formId={FORM_ID}
+        onSubmit={handleSubmit}
+        defaultClientId={defaultClientId}
+        onNewClient={() => setNewClientOpen(true)}
+        pickClientId={created?.id ?? null}
+      />
+      <ClientFormModal open={newClientOpen} onClose={() => setNewClientOpen(false)} clientId={null} onCreated={setCreated} />
     </Modal>
   );
 }

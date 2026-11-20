@@ -8,11 +8,13 @@ import { useProjectsShortList } from "@/hooks/use-projects";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { SavedFilters, setOnly } from "@/components/ui/SavedFilters";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { fetchAllPages } from "@/lib/export";
 import { invoiceColumns } from "@/lib/export-columns";
 import { invoicesApi, type InvoiceStatus as ExportInvoiceStatus } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
@@ -99,7 +101,7 @@ export default function InvoicesPage() {
           <p className="mt-1 text-(--muted)">Track invoices issued to clients</p>
         </div>
         <Button onClick={() => setModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           New invoice
         </Button>
       </div>
@@ -107,7 +109,17 @@ export default function InvoicesPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-          <FilterDrawer
+          <SavedFilters
+            page="invoices"
+            current={setOnly({ project_id: projectId, client_id: clientId, status })}
+            onApply={(p) => {
+              setProjectId(String(p.project_id ?? ""));
+              setClientId(String(p.client_id ?? ""));
+              setStatus(String(p.status ?? ""));
+              setPage(1);
+            }}
+          />
+<FilterDrawer
             activeCount={[projectId, clientId, status].filter(Boolean).length}
             onClear={() => {
               setProjectId("");
@@ -185,7 +197,7 @@ export default function InvoicesPage() {
               </TableBody>
             </Table>
           ) : !data?.invoices?.length ? (
-            <p className="py-8 text-center text-(--muted)">No invoices found.</p>
+            <EmptyState title="No invoices found" description="Create an invoice, or loosen the filters." action={<Button size="sm" onClick={() => setModalOpen(true)}><Plus className="me-2 h-4 w-4" />New invoice</Button>} />
           ) : (
             <>
               <Table>

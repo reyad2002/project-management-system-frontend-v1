@@ -70,7 +70,7 @@ export function InvestmentDetailModal({ open, onClose, investmentId }: Investmen
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-sm font-medium text-(--foreground)">Returns received</p>
                 <Button size="sm" onClick={() => setAddReturnOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="me-2 h-4 w-4" />
                   Add return
                 </Button>
               </div>

@@ -7,10 +7,12 @@ import { useProjects, useDeleteProject } from "@/hooks/use-projects";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { SavedFilters, setOnly } from "@/components/ui/SavedFilters";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { fetchAllPages } from "@/lib/export";
 import { projectColumns } from "@/lib/export-columns";
@@ -112,7 +114,7 @@ export default function ProjectsPage() {
             setModalOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add project
         </Button>
       </div>
@@ -122,9 +124,9 @@ export default function ProjectsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <form onSubmit={handleSearch} className="flex min-w-48 flex-1 gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+                <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
                 <Input
-                  className="pl-9"
+                  className="ps-9"
                   placeholder="Search title or details..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
@@ -134,7 +136,19 @@ export default function ProjectsPage() {
                 Search
               </Button>
             </form>
-            <FilterDrawer
+            <SavedFilters
+              page="projects"
+              current={setOnly({ client_id: clientId, status, type, q })}
+              onApply={(p) => {
+                setClientId(String(p.client_id ?? ""));
+                setStatus(String(p.status ?? ""));
+                setType(String(p.type ?? ""));
+                setQ(String(p.q ?? ""));
+                setSearchInput(String(p.q ?? ""));
+                setPage(1);
+              }}
+            />
+<FilterDrawer
               activeCount={[clientId, status, type].filter(Boolean).length}
               onClear={() => {
                 setClientId("");
@@ -202,9 +216,10 @@ export default function ProjectsPage() {
               </TableBody>
             </Table>
           ) : !data?.projects?.length ? (
-            <p className="py-8 text-center text-(--muted)">
-              No projects found.
-            </p>
+            <EmptyState title="No projects found" description="Start a project, or loosen the filters." action={<Button size="sm" onClick={() => {
+                setEditingId(null);
+                setModalOpen(true);
+              }}><Plus className="me-2 h-4 w-4" />New project</Button>} />
           ) : (
             <>
               <Table>
@@ -222,7 +237,7 @@ export default function ProjectsPage() {
                       <Td className="font-medium text-foreground">
                         {p.title}
                         {p.is_test && (
-                          <Badge variant="warning" dot={false} className="ml-2">
+                          <Badge variant="warning" dot={false} className="ms-2">
                             Test
                           </Badge>
                         )}

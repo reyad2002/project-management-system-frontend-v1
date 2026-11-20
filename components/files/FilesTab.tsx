@@ -38,7 +38,7 @@ export function FilesTab({ projectId }: FilesTabProps) {
     <div className="space-y-4">
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setUploadOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Upload file
         </Button>
       </div>

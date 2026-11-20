@@ -62,7 +62,7 @@ export function RevealPasswordCell({ onReveal }: RevealPasswordCellProps) {
         }
       }}
     >
-      <Eye className="mr-1.5 h-3.5 w-3.5" />
+      <Eye className="me-1.5 h-3.5 w-3.5" />
       Show
     </Button>
   );

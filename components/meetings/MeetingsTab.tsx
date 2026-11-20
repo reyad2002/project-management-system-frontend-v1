@@ -39,7 +39,7 @@ export function MeetingsTab({ projectId, clientId }: MeetingsTabProps) {
             setFormOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Schedule meeting
         </Button>
       </div>
@@ -66,7 +66,7 @@ export function MeetingsTab({ projectId, clientId }: MeetingsTabProps) {
                       href={m.meeting_link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-2 inline-flex items-center gap-1 text-xs text-(--primary) hover:underline"
+                      className="ms-2 inline-flex items-center gap-1 text-xs text-(--primary) hover:underline"
                     >
                       <Video className="h-3.5 w-3.5" />
                       Join

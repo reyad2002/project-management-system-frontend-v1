@@ -25,6 +25,7 @@ export const Input = forwardRef<
       <input
         ref={ref}
         id={inputId}
+        inputMode={props.inputMode ?? (props.type === "number" ? "decimal" : undefined)}
         aria-invalid={error ? true : undefined}
         aria-describedby={errorId}
         className={`${fieldControl} ${fieldHeight} ${error ? fieldBorderError : fieldBorder} ${className}`}

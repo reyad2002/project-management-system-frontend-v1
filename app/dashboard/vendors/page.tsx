@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useVendors, useDeleteVendor } from "@/hooks/use-vendors";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
@@ -54,7 +55,7 @@ export default function VendorsPage() {
             setModalOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add vendor
         </Button>
       </div>
@@ -64,9 +65,9 @@ export default function VendorsPage() {
           <div className="flex flex-wrap items-center gap-2">
           <form onSubmit={handleSearch} className="flex min-w-48 flex-1 gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+              <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
               <Input
-                className="pl-9"
+                className="ps-9"
                 placeholder="Search by name..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -102,7 +103,10 @@ export default function VendorsPage() {
               </TableBody>
             </Table>
           ) : !data?.vendors?.length ? (
-            <p className="py-8 text-center text-(--muted)">No vendors found.</p>
+            <EmptyState title="No vendors found" description="Add the companies you pay (hosting, freelancers, suppliers)." action={<Button size="sm" onClick={() => {
+                setEditingId(null);
+                setModalOpen(true);
+              }}><Plus className="me-2 h-4 w-4" />Add vendor</Button>} />
           ) : (
             <>
               <Table>

@@ -47,6 +47,7 @@ export function RecurringRevenueForm({ record, formId, onSubmit }: RecurringReve
     reset,
     formState: { errors },
   } = useForm<RecurringRevenueFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues,
   });

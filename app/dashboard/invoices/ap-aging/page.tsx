@@ -42,7 +42,7 @@ export default function ApAgingPage() {
       <div className="flex items-center gap-4">
         <Link href="/dashboard/finance">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back to Finance
           </Button>
         </Link>

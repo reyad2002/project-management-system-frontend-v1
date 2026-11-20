@@ -42,6 +42,7 @@ function AcceptInviteForm() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { password: "", confirmPassword: "" },
   });

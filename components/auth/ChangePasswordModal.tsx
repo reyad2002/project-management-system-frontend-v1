@@ -63,7 +63,7 @@ export function ChangePasswordModal({ open, forced = false, onClose }: ChangePas
         <>
           {forced ? (
             <Button type="button" variant="outline" onClick={() => logout()}>
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="me-2 h-4 w-4" />
               Log out
             </Button>
           ) : (

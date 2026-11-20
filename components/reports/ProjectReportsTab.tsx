@@ -107,7 +107,7 @@ export function ProjectReportsTab({ projectId, projectType, projectTitle }: Proj
             fetchRows={async () => [...reports].sort((a, b) => a.period_month.localeCompare(b.period_month))}
           />
           <Button size="sm" onClick={() => openModal(null)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             Add report
           </Button>
         </div>

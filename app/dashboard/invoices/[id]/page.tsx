@@ -45,7 +45,7 @@ export default function InvoiceDetailPage() {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
         Invoice not found.
-        <Button variant="outline" size="sm" className="ml-4" onClick={() => router.push("/dashboard/invoices")}>
+        <Button variant="outline" size="sm" className="ms-4" onClick={() => router.push("/dashboard/invoices")}>
           Back to list
         </Button>
       </div>
@@ -59,26 +59,26 @@ export default function InvoiceDetailPage() {
       <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/invoices">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back
           </Button>
         </Link>
         <div className="flex gap-2">
           {invoice.status === "draft" && (
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" />
+              <Pencil className="me-2 h-4 w-4" />
               Edit
             </Button>
           )}
           {invoice.status === "draft" && (
             <Button variant="secondary" size="sm" loading={sendInvoice.isPending} onClick={() => sendInvoice.mutate(invoice.id)}>
-              <Send className="mr-2 h-4 w-4" />
+              <Send className="me-2 h-4 w-4" />
               Send invoice
             </Button>
           )}
           {invoice.status !== "paid" && invoice.status !== "cancelled" && (
             <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
-              <Ban className="mr-2 h-4 w-4" />
+              <Ban className="me-2 h-4 w-4" />
               Cancel
             </Button>
           )}
@@ -136,7 +136,7 @@ export default function InvoiceDetailPage() {
           <CardTitle>Payments</CardTitle>
           {invoice.status !== "paid" && invoice.status !== "cancelled" && (
             <Button size="sm" onClick={() => setPaymentModalOpen(true)}>
-              <Wallet className="mr-2 h-4 w-4" />
+              <Wallet className="me-2 h-4 w-4" />
               Record payment
             </Button>
           )}

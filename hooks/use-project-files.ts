@@ -14,6 +14,7 @@ export function useProjectFiles(projectId: string | null, params?: { category?: 
 export function useUploadProjectFile(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "File added" },
     mutationFn: (data: CreateProjectFileInput) => filesApi.upload(projectId, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "files"] }),
   });

@@ -1,47 +1,57 @@
 import { getErrorMessage } from "./error-utils";
 
-const APP_ERROR_EVENT = "app:error";
+/**
+ * One small message bus for the toasts in the corner: errors (red), confirmations (green) and plain info.
+ * A toast can carry one action button ("Undo").
+ */
+const TOAST_EVENT = "app:toast";
 
-export interface AppErrorPayload {
-  message: string;
+export type ToastKind = "error" | "success" | "info";
+
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
 }
 
-let lastPublishedMessage = "";
-let lastPublishedAt = 0;
+export interface ToastPayload {
+  kind: ToastKind;
+  message: string;
+  action?: ToastAction;
+  /** ms before it disappears (default 5000). */
+  duration?: number;
+}
+
+let lastMessage = "";
+let lastAt = 0;
+
+function dispatch(payload: ToastPayload) {
+  if (typeof window === "undefined") return;
+  // The same message twice in a row (e.g. several queries failing together) shows once.
+  const now = Date.now();
+  if (payload.message === lastMessage && now - lastAt < 1500 && !payload.action) return;
+  lastMessage = payload.message;
+  lastAt = now;
+  window.dispatchEvent(new CustomEvent<ToastPayload>(TOAST_EVENT, { detail: payload }));
+}
 
 export function publishAppError(error: unknown) {
-  if (typeof window === "undefined") return;
-
-  const message = getErrorMessage(error);
-  const now = Date.now();
-
-  if (message === lastPublishedMessage && now - lastPublishedAt < 1500) {
-    return;
-  }
-
-  lastPublishedMessage = message;
-  lastPublishedAt = now;
-
-  window.dispatchEvent(
-    new CustomEvent<AppErrorPayload>(APP_ERROR_EVENT, { detail: { message } }),
-  );
+  dispatch({ kind: "error", message: getErrorMessage(error) });
 }
 
-export function subscribeToAppErrors(
-  handler: (payload: AppErrorPayload) => void,
-) {
+export function toastSuccess(message: string, options?: { action?: ToastAction; duration?: number }) {
+  dispatch({ kind: "success", message, ...options });
+}
+
+export function toastInfo(message: string, options?: { action?: ToastAction; duration?: number }) {
+  dispatch({ kind: "info", message, ...options });
+}
+
+export function subscribeToToasts(handler: (payload: ToastPayload) => void) {
   if (typeof window === "undefined") return () => {};
-
   const listener = (event: Event) => {
-    const customEvent = event as CustomEvent<AppErrorPayload>;
-    if (customEvent.detail?.message) {
-      handler(customEvent.detail);
-    }
+    const detail = (event as CustomEvent<ToastPayload>).detail;
+    if (detail?.message) handler(detail);
   };
-
-  window.addEventListener(APP_ERROR_EVENT, listener);
-
-  return () => {
-    window.removeEventListener(APP_ERROR_EVENT, listener);
-  };
+  window.addEventListener(TOAST_EVENT, listener);
+  return () => window.removeEventListener(TOAST_EVENT, listener);
 }

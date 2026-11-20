@@ -66,9 +66,9 @@ export function FilterDrawer({ children, activeCount, onClear, chips = [], title
           aria-label={activeCount > 0 ? `${title} (${activeCount} active)` : title}
         >
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="ml-2 hidden sm:inline">{title}</span>
+          <span className="ms-2 hidden sm:inline">{title}</span>
           {activeCount > 0 && (
-            <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-(--primary) px-1.5 text-xs font-semibold text-(--primary-foreground)">
+            <span className="ms-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-(--primary) px-1.5 text-xs font-semibold text-(--primary-foreground)">
               {activeCount}
             </span>
           )}
@@ -76,7 +76,7 @@ export function FilterDrawer({ children, activeCount, onClear, chips = [], title
         {chips.map((chip) => (
           <span
             key={chip.key}
-            className="inline-flex items-center gap-1 rounded-full border border-(--border) bg-(--muted-bg) py-0.5 pl-2.5 pr-1 text-xs text-foreground"
+            className="inline-flex items-center gap-1 rounded-full border border-(--border) bg-(--muted-bg) py-0.5 ps-2.5 pe-1 text-xs text-foreground"
           >
             {chip.label}
             <button
@@ -101,7 +101,7 @@ export function FilterDrawer({ children, activeCount, onClear, chips = [], title
               aria-modal="true"
               aria-labelledby={titleId}
               tabIndex={-1}
-              className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-(--border) bg-(--surface) shadow-xl outline-none animate-fade-in"
+              className="absolute end-0 top-0 flex h-full w-full max-w-sm flex-col border-s border-(--border) bg-(--surface) shadow-xl outline-none animate-fade-in"
             >
               <div className="flex items-center justify-between border-b border-(--border) px-5 py-4">
                 <h2 id={titleId} className="text-base font-semibold text-foreground">

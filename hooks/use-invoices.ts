@@ -30,6 +30,7 @@ export function useInvoice(id: string | null) {
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Invoice created" },
     mutationFn: (data: CreateInvoiceInput) => invoicesApi.create(data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
@@ -42,6 +43,7 @@ export function useCreateInvoice() {
 export function useUpdateInvoice(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Invoice saved" },
     mutationFn: (data: Partial<CreateInvoiceInput>) => invoicesApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
@@ -53,6 +55,7 @@ export function useUpdateInvoice(id: string) {
 export function useSendInvoice() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Invoice sent" },
     mutationFn: (id: string) => invoicesApi.send(id).then((r) => r.data),
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
@@ -64,6 +67,7 @@ export function useSendInvoice() {
 export function useCancelInvoice() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Invoice cancelled" },
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       invoicesApi.cancel(id, reason).then((r) => r.data),
     onSuccess: (_data, { id }) => {

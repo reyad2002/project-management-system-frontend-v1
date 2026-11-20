@@ -174,7 +174,7 @@ function FinanceDashboard() {
                 </span>
                 <span className="font-semibold text-foreground">
                   {formatMoney(financial.netRevenueAfterAdSpend)}
-                  <span className="ml-1 text-xs font-normal text-(--muted)">
+                  <span className="ms-1 text-xs font-normal text-(--muted)">
                     ({formatMoney(financial.adSpend)} ads)
                   </span>
                 </span>

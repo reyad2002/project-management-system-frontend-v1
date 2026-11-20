@@ -48,6 +48,7 @@ export function RecurringExpenseForm({ record, formId, onSubmit }: RecurringExpe
     reset,
     formState: { errors },
   } = useForm<RecurringExpenseFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues,
   });

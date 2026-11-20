@@ -40,6 +40,7 @@ export function VendorBillPaymentModal({ open, onClose, bill }: VendorBillPaymen
     reset,
     formState: { errors },
   } = useForm<FormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: {
       amount: 0,

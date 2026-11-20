@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { lastUsed } from "@/lib/last-used";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
@@ -44,7 +45,7 @@ const getDefaultValues = (
   invoice_id: payment?.invoice_id != null ? String(payment.invoice_id) : (defaultInvoiceId ?? ""),
   amount: payment?.amount ?? 0,
   payment_date: payment?.payment_date ?? new Date().toISOString().slice(0, 10),
-  payment_method: payment?.payment_method ?? "cash",
+  payment_method: payment?.payment_method ?? lastUsed("payment_method", "cash", ["cash", "bank_transfer", "credit_card", "other"]),
   notes: payment?.notes ?? "",
 });
 
@@ -66,6 +67,7 @@ export function PaymentForm({
     setValue,
     formState: { errors },
   } = useForm<PaymentFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: getDefaultValues(undefined, defaultProjectId, defaultInvoiceId),
   });

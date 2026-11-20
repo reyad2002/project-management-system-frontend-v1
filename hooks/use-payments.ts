@@ -28,6 +28,7 @@ export function usePayment(id: string | null) {
 export function useCreatePayment() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Payment recorded" },
     mutationFn: (data: CreatePaymentInput) => paymentsApi.create(data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
@@ -39,6 +40,7 @@ export function useCreatePayment() {
 export function useUpdatePayment(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Payment saved" },
     mutationFn: (data: Partial<CreatePaymentInput>) => paymentsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
@@ -51,6 +53,7 @@ export function useUpdatePayment(id: string) {
 export function useDeletePayment() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Payment deleted" },
     mutationFn: (id: string) => paymentsApi.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });

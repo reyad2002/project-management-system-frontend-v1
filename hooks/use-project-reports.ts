@@ -15,6 +15,7 @@ export function useProjectReports(projectId: string | null) {
 export function useSaveProjectReport(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Report saved" },
     mutationFn: ({ id, ...data }: { id?: string } & ProjectReportInput) =>
       (id ? projectReportsApi.update(id, data) : projectReportsApi.create(projectId, data)).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "reports"] }),
@@ -24,6 +25,7 @@ export function useSaveProjectReport(projectId: string) {
 export function useDeleteProjectReport(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Report deleted" },
     mutationFn: (id: string) => projectReportsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "reports"] }),
   });

@@ -43,6 +43,7 @@ export function MeetingForm({ meeting, formId, onSubmit }: MeetingFormProps) {
     reset,
     formState: { errors },
   } = useForm<MeetingFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues,
   });

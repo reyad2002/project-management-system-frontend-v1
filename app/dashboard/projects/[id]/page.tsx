@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Tabs } from "@/components/ui/Tabs";
 import { MeetingsTab } from "@/components/meetings/MeetingsTab";
+import { ProjectTasksPanel } from "@/components/tasks/ProjectTasksPanel";
 import { ProjectLinksTab } from "@/components/projects/ProjectLinksTab";
 import { CredentialsTab } from "@/components/credentials/CredentialsTab";
 import { FilesTab } from "@/components/files/FilesTab";
@@ -36,6 +37,9 @@ import { InvoiceFormModal } from "@/app/dashboard/invoices/InvoiceFormModal";
 import { ProjectFormModal } from "@/app/dashboard/projects/ProjectFormModal";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { PaymentFormModal } from "@/app/dashboard/payments/PaymentFormModal";
+import { ExpenseFormModal } from "@/app/dashboard/expenses/ExpenseFormModal";
+import { togglePin, usePinnedProjects } from "@/lib/local-lists";
+import { ProjectWrapUp } from "@/components/projects/ProjectWrapUp";
 import { invoiceStatusVariant } from "@/lib/status-badges";
 
 function formatMoney(n: number) {
@@ -65,6 +69,9 @@ export default function ProjectDetailPage() {
   const [deletingPhaseId, setDeletingPhaseId] = useState<string | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
+  const pins = usePinnedProjects(user?.id);
+  const pinned = pins.some((p) => String(p.id) === String(id));
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const { data: clientsData } = useClientsShortList();
@@ -84,7 +91,7 @@ export default function ProjectDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-4"
+          className="ms-4"
           onClick={() => router.push("/dashboard/projects")}
         >
           Back to list
@@ -103,15 +110,29 @@ export default function ProjectDetailPage() {
       <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/projects">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back
           </Button>
         </Link>
-        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit project
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            aria-pressed={pinned}
+            title={pinned ? "Remove from the sidebar" : "Keep in the sidebar for quick access"}
+            onClick={() => togglePin(user?.id, { id, title: project.title })}
+          >
+            <Star className={`me-2 h-4 w-4 ${pinned ? "fill-current text-(--warning)" : ""}`} />
+            {pinned ? "Pinned" : "Pin"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="me-2 h-4 w-4" />
+            Edit project
+          </Button>
+        </div>
       </div>
+
+      <ProjectWrapUp projectId={id} status={project.status} remaining={financeAllowed ? remaining : null} />
 
       <Card>
         <CardHeader>
@@ -166,6 +187,11 @@ export default function ProjectDetailPage() {
           <Tabs
             tabs={[
               {
+                key: "tasks",
+                label: "Tasks",
+                content: <ProjectTasksPanel projectId={id} projectStartDate={project.start_date} projectType={project.type} />,
+              },
+              {
                 key: "meetings",
                 label: "Meetings",
                 content: <MeetingsTab projectId={id} clientId={project.client_id} />,
@@ -203,7 +229,7 @@ export default function ProjectDetailPage() {
                           setPhaseModalOpen(true);
                         }}
                       >
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="me-2 h-4 w-4" />
                         Add phase
                       </Button>
                     </div>
@@ -256,7 +282,7 @@ export default function ProjectDetailPage() {
                   <div className="space-y-4">
                     <div className="flex justify-end">
                       <Button size="sm" onClick={() => setInvoiceModalOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="me-2 h-4 w-4" />
                         New invoice
                       </Button>
                     </div>
@@ -301,10 +327,16 @@ export default function ProjectDetailPage() {
                       <p className="text-sm text-[var(--muted)]">
                         Total paid: {formatMoney(totalPaid)} · Remaining: {formatMoney(remaining)}
                       </p>
-                      <Button size="sm" onClick={() => setPaymentModalOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add payment
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setExpenseModalOpen(true)}>
+                          <Plus className="me-2 h-4 w-4" />
+                          Add expense
+                        </Button>
+                        <Button size="sm" onClick={() => setPaymentModalOpen(true)}>
+                          <Plus className="me-2 h-4 w-4" />
+                          Add payment
+                        </Button>
+                      </div>
                     </div>
                     {payments.length === 0 ? (
                       <p className="text-[var(--muted)]">No payments yet.</p>
@@ -386,6 +418,28 @@ export default function ProjectDetailPage() {
                               </div>
                             </>
                           )}
+                          {profitability.budgetedCost != null && (
+                            <div className="space-y-1.5 sm:col-span-3">
+                              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                <p className="text-sm text-[var(--muted)]">Budget vs actual cost</p>
+                                <p className="text-sm">
+                                  <span className="font-semibold">{formatMoney(profitability.totalCost)}</span>
+                                  <span className="text-[var(--muted)]"> of {formatMoney(profitability.budgetedCost)} ({profitability.budgetPercent}%)</span>
+                                </p>
+                              </div>
+                              <div className="h-2.5 overflow-hidden rounded-full bg-(--muted-bg)" role="progressbar" aria-valuenow={Math.min(100, profitability.budgetPercent ?? 0)} aria-valuemin={0} aria-valuemax={100}>
+                                <div
+                                  className={`h-full rounded-full ${profitability.budgetLevel === "over" ? "bg-(--destructive)" : profitability.budgetLevel === "warn" ? "bg-(--warning)" : "bg-(--success)"}`}
+                                  style={{ width: `${Math.min(100, profitability.budgetPercent ?? 0)}%` }}
+                                />
+                              </div>
+                              <p className={`text-xs ${profitability.budgetLevel === "over" ? "font-medium text-(--destructive)" : "text-(--muted)"}`}>
+                                {(profitability.budgetVariance ?? 0) < 0
+                                  ? `Over budget by ${formatMoney(Math.abs(profitability.budgetVariance ?? 0))}`
+                                  : `${formatMoney(profitability.budgetVariance ?? 0)} left in the budget`}
+                              </p>
+                            </div>
+                          )}
                           <p className="text-xs text-[var(--muted)] sm:col-span-3">
                             Revenue basis: {profitability.revenueBasis === "invoices" ? "invoices issued" : "payments received (no invoices on this project)"}.
                             Advances and equipment are not counted as project costs.
@@ -405,6 +459,8 @@ export default function ProjectDetailPage() {
         onClose={() => setInvoiceModalOpen(false)}
         defaultProjectId={id}
       />
+
+      <ExpenseFormModal open={expenseModalOpen} onClose={() => setExpenseModalOpen(false)} expenseId={null} defaultProjectId={id} />
 
       <PaymentFormModal
         open={paymentModalOpen}

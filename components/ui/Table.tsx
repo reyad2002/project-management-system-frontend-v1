@@ -13,7 +13,7 @@ export function Table({ children, className = "" }: React.PropsWithChildren<{ cl
 export function TableHead({ children }: React.PropsWithChildren) {
   return (
     <thead className="bg-[var(--surface-sunken)]">
-      <tr className="text-left text-[var(--muted)]">{children}</tr>
+      <tr className="text-start text-[var(--muted)]">{children}</tr>
     </thead>
   );
 }
@@ -49,7 +49,7 @@ export function Th({ children, align = "left", className = "" }: CellProps) {
     <th
       scope="col"
       className={`px-4 py-3 text-xs font-medium uppercase tracking-wide ${
-        align === "right" ? "text-right" : "text-left"
+        align === "right" ? "text-end" : "text-start"
       } ${className}`}
     >
       {children}
@@ -72,7 +72,7 @@ export function Td({
     <td
       colSpan={colSpan}
       data-label={label}
-      className={`px-4 py-3 ${align === "right" ? "md:text-right" : ""} ${className}`}
+      className={`px-4 py-3 ${align === "right" ? "md:text-end" : ""} ${className}`}
     >
       {children}
     </td>

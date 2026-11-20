@@ -14,6 +14,7 @@ export function useCredentials(projectId: string | null) {
 export function useCreateCredential(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Credential saved" },
     mutationFn: (data: CreateCredentialInput) => credentialsApi.create(projectId, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects", projectId, "credentials"] }),
   });

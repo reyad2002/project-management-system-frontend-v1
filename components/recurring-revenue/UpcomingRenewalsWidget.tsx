@@ -36,7 +36,7 @@ export function UpcomingRenewalsWidget() {
                 <p className="text-xs text-(--muted)">Expected upcoming (this + next month)</p>
                 <p className="text-lg font-semibold text-(--foreground)">
                   {formatMoney(data.upcomingTotal)}
-                  <span className="ml-1 text-xs font-normal text-(--muted)">({data.upcomingCount})</span>
+                  <span className="ms-1 text-xs font-normal text-(--muted)">({data.upcomingCount})</span>
                 </p>
               </div>
               <div
@@ -50,7 +50,7 @@ export function UpcomingRenewalsWidget() {
                 </p>
                 <p className={`text-lg font-semibold ${data.overdueCount > 0 ? "text-(--destructive)" : "text-(--foreground)"}`}>
                   {formatMoney(data.overdueTotal)}
-                  <span className="ml-1 text-xs font-normal opacity-80">({data.overdueCount})</span>
+                  <span className="ms-1 text-xs font-normal opacity-80">({data.overdueCount})</span>
                 </p>
               </div>
             </div>

@@ -14,6 +14,7 @@ export function useClientPortalUsers(clientId: string | null) {
 export function useInviteClientPortalUser(clientId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Invitation sent" },
     mutationFn: (data: { name: string; email: string }) =>
       clientPortalApi.invite(clientId, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clients", clientId, "portal-users"] }),
@@ -23,6 +24,7 @@ export function useInviteClientPortalUser(clientId: string) {
 export function useRevokeClientPortalUser(clientId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Access removed" },
     mutationFn: (id: string) => clientPortalApi.revoke(clientId, id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clients", clientId, "portal-users"] }),
   });

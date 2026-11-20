@@ -44,7 +44,7 @@ export function RecurringExpenseTable({ records, onEdit, onDelete, onMarkPaid, m
             <Td className="font-medium">
               {r.name}
               {r.auto_charge && r.status === "active" && (
-                <Badge variant="info" dot={false} className="ml-2" title="Deducted automatically on the due date">
+                <Badge variant="info" dot={false} className="ms-2" title="Deducted automatically on the due date">
                   Auto
                 </Badge>
               )}

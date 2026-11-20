@@ -32,7 +32,7 @@ export function CredentialAccessLogModal({ open, onClose, credentialId }: Creden
               <TableRow key={i}>
                 <Td>
                   {log.accessed_by_name}
-                  <span className="ml-1 text-xs text-(--muted)">
+                  <span className="ms-1 text-xs text-(--muted)">
                     ({log.accessed_by_type === "client_portal_user" ? "client" : "team"})
                   </span>
                 </Td>

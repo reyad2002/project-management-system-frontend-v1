@@ -36,7 +36,7 @@ export function SubtaskList({ taskId, onAddSubtask, onOpenSubtask }: SubtaskList
               <button
                 type="button"
                 onClick={() => onOpenSubtask(st)}
-                className="flex w-full items-center justify-between gap-2 rounded-lg bg-(--muted-bg) px-2.5 py-1.5 text-left transition-colors hover:bg-(--muted-bg)/70"
+                className="flex w-full items-center justify-between gap-2 rounded-lg bg-(--muted-bg) px-2.5 py-1.5 text-start transition-colors hover:bg-(--muted-bg)/70"
               >
                 <span className="truncate text-sm text-(--foreground)">{st.title}</span>
                 <Badge variant={taskStatusVariant[st.status]} dot={false} className="shrink-0">

@@ -43,6 +43,7 @@ export function ProjectLinksTab({ projectId }: ProjectLinksTabProps) {
     reset,
     formState: { errors },
   } = useForm<LinkFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { label: "", url: "", type: "other" },
   });
@@ -77,7 +78,7 @@ export function ProjectLinksTab({ projectId }: ProjectLinksTabProps) {
           )}
         />
         <Button type="submit" loading={createLink.isPending}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add
         </Button>
       </form>

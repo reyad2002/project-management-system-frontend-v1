@@ -35,7 +35,7 @@ export default function PortalInvoiceDetailPage() {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
         Invoice not found.
-        <Button variant="outline" size="sm" className="ml-4" onClick={() => router.push("/portal/invoices")}>
+        <Button variant="outline" size="sm" className="ms-4" onClick={() => router.push("/portal/invoices")}>
           Back to invoices
         </Button>
       </div>
@@ -48,7 +48,7 @@ export default function PortalInvoiceDetailPage() {
     <div className="space-y-6">
       <Link href="/portal/invoices">
         <Button variant="ghost" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="me-2 h-4 w-4" />
           Back
         </Button>
       </Link>

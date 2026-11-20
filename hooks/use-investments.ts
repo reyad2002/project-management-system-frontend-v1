@@ -36,6 +36,7 @@ export function useInvestmentReturns(investmentId: string | null) {
 export function useCreateInvestment() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Investment added" },
     mutationFn: (data: CreateInvestmentInput) => investmentsApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["investments"] }),
   });
@@ -44,6 +45,7 @@ export function useCreateInvestment() {
 export function useUpdateInvestment(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Investment saved" },
     mutationFn: (data: Partial<CreateInvestmentInput>) => investmentsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["investments"] });
@@ -55,6 +57,7 @@ export function useUpdateInvestment(id: string) {
 export function useDeleteInvestment() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Investment deleted" },
     mutationFn: (id: string) => investmentsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["investments"] }),
   });
@@ -63,6 +66,7 @@ export function useDeleteInvestment() {
 export function useAddInvestmentReturn(investmentId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Return recorded" },
     mutationFn: (data: { amount: number; received_date: string }) =>
       investmentsApi.addReturn(investmentId, data).then((r) => r.data),
     onSuccess: () => {

@@ -68,7 +68,7 @@ export function TaskFormModal({ open, onClose, projectId, clientId, taskId, defa
               <Button
                 type="button"
                 variant="outline"
-                className="mr-auto text-(--destructive)"
+                className="me-auto text-(--destructive)"
                 onClick={() => setDeleteConfirmOpen(true)}
               >
                 Delete

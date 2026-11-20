@@ -5,7 +5,7 @@
  */
 
 export const fieldControl =
-  "w-full rounded-lg border bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] " +
+  "w-full rounded-lg border bg-[var(--surface)] px-3 py-2 text-base text-[var(--foreground)] sm:text-sm " +
   "transition-[border-color,background-color] duration-150 ease-out " +
   "placeholder:text-[var(--muted)] " +
   "disabled:cursor-not-allowed disabled:bg-[var(--muted-bg)] disabled:opacity-60";

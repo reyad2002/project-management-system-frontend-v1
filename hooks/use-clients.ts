@@ -36,6 +36,7 @@ export function useClientPaymentSummary(id: string | null) {
 export function useCreateClient() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Client created" },
     mutationFn: (data: CreateClientInput) => clientsApi.create(data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
@@ -46,6 +47,7 @@ export function useCreateClient() {
 export function useUpdateClient(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Client saved" },
     mutationFn: (data: Partial<CreateClientInput>) => clientsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
@@ -57,6 +59,7 @@ export function useUpdateClient(id: string) {
 export function useDeleteClient() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Client deleted" },
     mutationFn: (id: string) => clientsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clients"] }),
   });

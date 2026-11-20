@@ -25,7 +25,7 @@ export function CredentialsTab({ projectId }: CredentialsTabProps) {
     <div className="space-y-4">
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add credential
         </Button>
       </div>

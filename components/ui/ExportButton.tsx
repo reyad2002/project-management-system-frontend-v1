@@ -44,7 +44,7 @@ export function ExportButton<T>({ filename, sheet, columns, fetchRows }: ExportB
   return (
     <Button type="button" variant="outline" size="sm" loading={busy} onClick={handleClick} aria-label="Export to Excel">
       <Download className="h-4 w-4" />
-      <span className="ml-2 hidden sm:inline">Export</span>
+      <span className="ms-2 hidden sm:inline">Export</span>
     </Button>
   );
 }
@@ -78,7 +78,7 @@ export function ExportWorkbookButton({ filename, buildSheets }: ExportWorkbookBu
   return (
     <Button type="button" variant="outline" size="sm" loading={busy} onClick={handleClick} aria-label="Export to Excel">
       <Download className="h-4 w-4" />
-      <span className="ml-2 hidden sm:inline">Export Excel</span>
+      <span className="ms-2 hidden sm:inline">Export Excel</span>
     </Button>
   );
 }

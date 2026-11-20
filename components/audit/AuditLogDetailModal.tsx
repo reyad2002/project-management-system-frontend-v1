@@ -67,7 +67,7 @@ export function AuditLogDetailModal({ logId, onClose }: AuditLogDetailModalProps
             <dt className="text-(--muted)">Who</dt>
             <dd>
               {log.actor_name ?? "Unknown"}
-              <span className="ml-1 text-xs text-(--muted)">
+              <span className="ms-1 text-xs text-(--muted)">
                 ({log.actor_type === "client_portal_user" ? "client portal" : log.actor_type})
               </span>
             </dd>

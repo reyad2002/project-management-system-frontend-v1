@@ -28,6 +28,7 @@ export function useVendor(id: string | null) {
 export function useCreateVendor() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Vendor added" },
     mutationFn: (data: CreateVendorInput) => vendorsApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendors"] }),
   });
@@ -36,6 +37,7 @@ export function useCreateVendor() {
 export function useUpdateVendor(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Vendor saved" },
     mutationFn: (data: Partial<CreateVendorInput>) => vendorsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendors"] });
@@ -47,6 +49,7 @@ export function useUpdateVendor(id: string) {
 export function useDeleteVendor() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Vendor deleted" },
     mutationFn: (id: string) => vendorsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendors"] }),
   });

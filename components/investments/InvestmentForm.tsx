@@ -41,6 +41,7 @@ export function InvestmentForm({ investment, formId, onSubmit }: InvestmentFormP
     reset,
     formState: { errors },
   } = useForm<InvestmentFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues,
   });

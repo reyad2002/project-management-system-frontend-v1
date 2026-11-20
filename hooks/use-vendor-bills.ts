@@ -32,6 +32,7 @@ export function useVendorBill(id: string | null) {
 export function useCreateVendorBill() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Bill added" },
     mutationFn: (data: CreateVendorBillInput) => vendorBillsApi.create(data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendor-bills"] });
@@ -43,6 +44,7 @@ export function useCreateVendorBill() {
 export function useUpdateVendorBill(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Bill saved" },
     mutationFn: (data: Partial<CreateVendorBillInput>) => vendorBillsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendor-bills"] });
@@ -54,6 +56,7 @@ export function useUpdateVendorBill(id: string) {
 export function useDeleteVendorBill() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Bill deleted" },
     mutationFn: (id: string) => vendorBillsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendor-bills"] }),
   });
@@ -62,6 +65,7 @@ export function useDeleteVendorBill() {
 export function useAddVendorBillPayment(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Payment recorded" },
     mutationFn: (data: CreateVendorBillPaymentInput) => vendorBillsApi.addPayment(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendor-bills"] });

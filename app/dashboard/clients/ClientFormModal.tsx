@@ -11,9 +11,11 @@ interface ClientFormModalProps {
   open: boolean;
   onClose: () => void;
   clientId: string | null;
+  /** Called with the new client after "Create" (the project form uses it to pick that client). */
+  onCreated?: (client: { id: string; name: string }) => void;
 }
 
-export function ClientFormModal({ open, onClose, clientId }: ClientFormModalProps) {
+export function ClientFormModal({ open, onClose, clientId, onCreated }: ClientFormModalProps) {
   const { data: client } = useClient(clientId ?? null);
   const createClient = useCreateClient();
   const updateClient = useUpdateClient(clientId ?? "");
@@ -24,7 +26,7 @@ export function ClientFormModal({ open, onClose, clientId }: ClientFormModalProp
     if (clientId && client) {
       await updateClient.mutateAsync(data);
     } else {
-      await createClient.mutateAsync({
+      const created = await createClient.mutateAsync({
         name: data.name,
         email: data.email || undefined,
         phone: data.phone || undefined,
@@ -32,6 +34,7 @@ export function ClientFormModal({ open, onClose, clientId }: ClientFormModalProp
         notes: data.notes || undefined,
         feedback: data.feedback || undefined,
       });
+      onCreated?.({ id: String(created.id), name: created.name });
     }
     onClose();
   };

@@ -21,6 +21,7 @@ const schema = z
     type: z.enum(["software", "marketing", "branding", "social_media", "other"]),
     billing_model: z.enum(["fixed", "retainer", "hybrid"]),
     ad_budget: z.union([z.string(), z.number()]).optional(),
+    budget_cost: z.union([z.string(), z.number()]).optional(),
     is_test: z.boolean(),
     status: z
       .enum(["draft", "active", "on_hold", "cancelled", "completed"])
@@ -41,6 +42,12 @@ interface ProjectFormProps {
   clientOptions: { value: string; label: string }[];
   formId: string;
   onSubmit: (data: ProjectFormData) => Promise<void>;
+  /** New project for this client (opened from the client page). */
+  defaultClientId?: string;
+  /** "+ New client" under the client field; called when pressed. */
+  onNewClient?: () => void;
+  /** A client just created from this form: select it. */
+  pickClientId?: string | null;
 }
 
 const defaultEmpty: ProjectFormData = {
@@ -54,6 +61,7 @@ const defaultEmpty: ProjectFormData = {
   type: "software",
   billing_model: "fixed",
   ad_budget: "",
+  budget_cost: "",
   is_test: false,
 };
 
@@ -62,14 +70,19 @@ export function ProjectForm({
   clientOptions,
   formId,
   onSubmit,
+  defaultClientId,
+  onNewClient,
+  pickClientId,
 }: ProjectFormProps) {
   const {
     register,
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ProjectFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });
@@ -90,12 +103,17 @@ export function ProjectForm({
         type: project.type ?? "software",
         billing_model: project.billing_model ?? "fixed",
         ad_budget: project.ad_budget ? project.ad_budget : "",
+        budget_cost: project.budget_cost ?? "",
         is_test: project.is_test ?? false,
       });
     } else {
-      reset(defaultEmpty);
+      reset({ ...defaultEmpty, client_id: defaultClientId ?? "" });
     }
-  }, [project, reset]);
+  }, [project, reset, defaultClientId]);
+
+  useEffect(() => {
+    if (pickClientId) setValue("client_id", pickClientId, { shouldValidate: true, shouldDirty: true });
+  }, [pickClientId, setValue]);
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="form-stagger space-y-4">
@@ -115,6 +133,11 @@ export function ProjectForm({
           />
         )}
       />
+      {onNewClient && !project && (
+        <button type="button" onClick={onNewClient} className="-mt-2 text-sm font-medium text-(--primary) hover:underline">
+          + New client
+        </button>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Controller
           name="type"
@@ -204,6 +227,14 @@ export function ProjectForm({
           {...register("ad_budget")}
         />
       )}
+      <Input
+        label="Expected cost (budget, optional)"
+        type="number"
+        step="0.01"
+        min="0"
+        error={errors.budget_cost?.message}
+        {...register("budget_cost")}
+      />
       <label className="flex items-center gap-2 text-sm text-(--muted)">
         <input type="checkbox" {...register("is_test")} />
         Test / demo project (excluded from dashboard and reports)

@@ -86,9 +86,9 @@ export default function AuditLogPage() {
               }}
             >
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+                <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
                 <Input
-                  className="pl-9"
+                  className="ps-9"
                   placeholder="Search the summary..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
@@ -172,7 +172,7 @@ export default function AuditLogPage() {
                       <Td className="whitespace-nowrap text-(--muted)">{formatAuditTime(l.occurred_at)}</Td>
                       <Td label="Who">
                         {l.actor_name ?? "—"}
-                        {l.actor_type === "client_portal_user" && <span className="ml-1 text-xs text-(--muted)">(client)</span>}
+                        {l.actor_type === "client_portal_user" && <span className="ms-1 text-xs text-(--muted)">(client)</span>}
                       </Td>
                       <Td label="Action">
                         <Badge variant={actionVariant(l.action, l.outcome)} dot={false}>

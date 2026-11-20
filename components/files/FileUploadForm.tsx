@@ -26,6 +26,7 @@ export function FileUploadForm({ formId, onSubmit }: FileUploadFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<FileUploadFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { file_name: "", file_url: "", description: "" },
   });

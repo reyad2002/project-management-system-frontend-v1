@@ -20,6 +20,7 @@ export function useUpcomingRecurringRevenue(days?: number) {
 export function useCreateRecurringRevenue() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Recurring revenue added" },
     mutationFn: (data: CreateRecurringRevenueInput) => recurringRevenueApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["recurring-revenue"] }),
   });
@@ -28,6 +29,7 @@ export function useCreateRecurringRevenue() {
 export function useUpdateRecurringRevenue(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Recurring revenue saved" },
     mutationFn: (data: Partial<CreateRecurringRevenueInput>) =>
       recurringRevenueApi.update(id, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["recurring-revenue"] }),
@@ -37,6 +39,7 @@ export function useUpdateRecurringRevenue(id: string) {
 export function useDeleteRecurringRevenue() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Recurring revenue deleted" },
     mutationFn: (id: string) => recurringRevenueApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["recurring-revenue"] }),
   });
@@ -45,6 +48,7 @@ export function useDeleteRecurringRevenue() {
 export function useMarkRecurringRevenuePaid() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Marked as paid" },
     mutationFn: (id: string) => recurringRevenueApi.markPaid(id).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["recurring-revenue"] });

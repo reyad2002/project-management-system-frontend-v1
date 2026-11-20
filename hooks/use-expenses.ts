@@ -30,6 +30,7 @@ export function useExpense(id: string | null) {
 export function useCreateExpense() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Expense added" },
     mutationFn: (data: CreateExpenseInput) => expensesApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["expenses"] }),
   });
@@ -38,6 +39,7 @@ export function useCreateExpense() {
 export function useUpdateExpense(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Expense saved" },
     mutationFn: (data: Partial<CreateExpenseInput>) => expensesApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
@@ -49,6 +51,7 @@ export function useUpdateExpense(id: string) {
 export function useDeleteExpense() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Expense deleted" },
     mutationFn: (id: string) => expensesApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["expenses"] }),
   });

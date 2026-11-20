@@ -23,6 +23,7 @@ export default function PortalLoginPage() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });

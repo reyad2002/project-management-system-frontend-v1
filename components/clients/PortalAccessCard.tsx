@@ -32,12 +32,12 @@ function CopyLinkButton({ link }: { link: string }) {
     >
       {copied ? (
         <>
-          <Check className="mr-1.5 h-3.5 w-3.5 text-(--success)" />
+          <Check className="me-1.5 h-3.5 w-3.5 text-(--success)" />
           Copied
         </>
       ) : (
         <>
-          <Copy className="mr-1.5 h-3.5 w-3.5" />
+          <Copy className="me-1.5 h-3.5 w-3.5" />
           Copy link
         </>
       )}
@@ -78,7 +78,7 @@ export function PortalAccessCard({ clientId }: PortalAccessCardProps) {
           Portal access
         </CardTitle>
         <Button size="sm" onClick={() => setModalOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
+          <UserPlus className="me-2 h-4 w-4" />
           Invite to portal
         </Button>
       </CardHeader>

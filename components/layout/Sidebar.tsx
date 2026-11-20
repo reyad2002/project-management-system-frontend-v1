@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { can, type Area } from "@/lib/permissions";
+import { usePinnedProjects } from "@/lib/local-lists";
 import {
   LayoutDashboard,
   Users,
@@ -23,6 +24,13 @@ import {
   ShieldCheck,
   ScrollText,
   CalendarRange,
+  ListChecks,
+  Sun,
+  Star,
+  Waves,
+  PieChart,
+  Gauge,
+  HeartPulse,
 } from "lucide-react";
 
 interface NavLink {
@@ -39,9 +47,11 @@ interface NavGroup {
 }
 
 const topLinks: NavLink[] = [
+  { href: "/dashboard/today", label: "Today", icon: Sun },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/clients", label: "Clients", icon: Users },
   { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+  { href: "/dashboard/tasks", label: "Tasks", icon: ListChecks },
 ];
 
 const groups: NavGroup[] = [
@@ -62,6 +72,10 @@ const groups: NavGroup[] = [
     items: [
       { href: "/dashboard/finance", label: "Finance overview", icon: Wallet },
       { href: "/dashboard/finance/monthly", label: "Monthly report", icon: CalendarRange },
+      { href: "/dashboard/finance/cashflow", label: "Cash-flow forecast", icon: Waves },
+      { href: "/dashboard/finance/clients", label: "Client profitability", icon: PieChart },
+      { href: "/dashboard/finance/budgets", label: "Project budgets", icon: Gauge },
+      { href: "/dashboard/clients/health", label: "Client health", icon: HeartPulse },
       { href: "/dashboard/finance/investments", label: "Investments", icon: TrendingUp },
       { href: "/dashboard/invoices/ar-aging", label: "AR aging", icon: Landmark },
       { href: "/dashboard/invoices/ap-aging", label: "AP aging", icon: BadgeAlert },
@@ -114,6 +128,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const visibleGroups = groups.filter((g) => !g.area || can(user, g.area));
+  const pins = usePinnedProjects(user?.id);
   const activeHref = getActiveHref(pathname);
 
   const handleLinkClick = () => {
@@ -128,7 +143,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         key={item.href}
         href={item.href}
         onClick={handleLinkClick}
-        className={`flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm transition-colors ${
+        className={`flex items-center gap-3 rounded-md border-s-2 px-3 py-2 text-sm transition-colors ${
           isActive
             ? "border-(--sidebar-active) bg-(--sidebar-hover) font-medium text-(--sidebar-active)"
             : "border-transparent text-(--sidebar-foreground) hover:bg-(--sidebar-hover)"
@@ -154,7 +169,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         }`}
       />
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-56 flex-col border-r border-(--border) bg-(--sidebar-bg) text-(--sidebar-foreground) shadow-lg transition-transform duration-200 ease-out md:translate-x-0 md:shadow-none ${
+        className={`fixed start-0 top-0 z-50 flex h-screen w-56 flex-col border-e border-(--border) bg-(--sidebar-bg) text-(--sidebar-foreground) shadow-lg transition-transform duration-200 ease-out md:translate-x-0 md:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -179,6 +194,28 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
         <nav className="flex-1 space-y-1 overflow-auto p-2">
           {topLinks.map(renderLink)}
+          {pins.length > 0 && (
+            <div className="pt-2">
+              <p className="px-3 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-wider text-(--sidebar-foreground)/55">Pinned</p>
+              {pins.map((p) => {
+                const href = `/dashboard/projects/${p.id}`;
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={p.id}
+                    href={href}
+                    onClick={handleLinkClick}
+                    className={`flex items-center gap-3 rounded-md border-s-2 px-3 py-2 text-sm transition-colors ${
+                      active ? "border-(--sidebar-active) bg-(--sidebar-hover) font-medium text-(--sidebar-active)" : "border-transparent text-(--sidebar-foreground) hover:bg-(--sidebar-hover)"
+                    }`}
+                  >
+                    <Star className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate">{p.title}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
           {visibleGroups.map((group) => (
             <div key={group.label} className="pt-2">
               <p className="px-3 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-wider text-(--sidebar-foreground)/55">

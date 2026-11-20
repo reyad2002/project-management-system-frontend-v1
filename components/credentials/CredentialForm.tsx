@@ -28,6 +28,7 @@ export function CredentialForm({ formId, onSubmit }: CredentialFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<CredentialFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { label: "", username: "", password: "", panel_url: "", notes: "" },
   });

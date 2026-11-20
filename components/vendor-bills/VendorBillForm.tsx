@@ -67,6 +67,7 @@ export function VendorBillForm({ bill, defaultWhtRate, formId, onSubmit }: Vendo
     reset,
     formState: { errors },
   } = useForm<VendorBillFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: getDefaultValues(defaultWhtRate),
   });

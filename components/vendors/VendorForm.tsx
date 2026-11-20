@@ -43,6 +43,7 @@ export function VendorForm({ vendor, formId, onSubmit }: VendorFormProps) {
     reset,
     formState: { errors },
   } = useForm<VendorFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });

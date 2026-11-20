@@ -14,6 +14,7 @@ export function useAccounts(enabled = true) {
 export function useCreateAccount() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Account created" },
     mutationFn: (data: CreateAccountInput) => accountsApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
   });
@@ -22,6 +23,7 @@ export function useCreateAccount() {
 export function useUpdateAccount() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Account updated" },
     mutationFn: ({ id, ...data }: { id: string } & UpdateAccountInput) => accountsApi.update(id, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
   });
@@ -30,6 +32,7 @@ export function useUpdateAccount() {
 export function useSetAccountStatus() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Account status updated" },
     mutationFn: ({ id, status }: { id: string; status: AccountStatus }) => accountsApi.setStatus(id, status).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
   });

@@ -63,6 +63,7 @@ export function TaskForm({ task, projectId, clientId, formId, onSubmit }: TaskFo
     reset,
     formState: { errors },
   } = useForm<TaskFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });

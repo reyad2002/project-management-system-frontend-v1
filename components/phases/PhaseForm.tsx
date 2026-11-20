@@ -44,6 +44,7 @@ export function PhaseForm({ phase, formId, onSubmit }: PhaseFormProps) {
     reset,
     formState: { errors },
   } = useForm<PhaseFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues,
   });

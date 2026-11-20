@@ -314,6 +314,8 @@ export interface Project {
   is_test: boolean;
   /** Part of the package price that is the client's ad budget (marketing / social media). */
   ad_budget: number;
+  /** Expected cost of delivering the project (null = no budget set). */
+  budget_cost: number | null;
   created_by: string;
 }
 
@@ -329,6 +331,8 @@ export interface CreateProjectInput {
   billing_model?: BillingModel;
   is_test?: boolean;
   ad_budget?: number;
+  /** null clears the budget. */
+  budget_cost?: number | null;
 }
 
 export interface Phase {
@@ -664,8 +668,129 @@ export interface ProjectProfitability {
   /** Negative = overspent vs. the client's ad budget; positive = client money not yet spent. */
   adBudgetRemaining: number | null;
   budgetedCost: number | null;
+  /** Budget minus cost: positive = under budget. */
   budgetVariance: number | null;
+  budgetPercent?: number | null;
+  budgetLevel?: BudgetLevel | null;
 }
+
+// ---- Client health, cash-flow forecast, client profitability, budgets ----
+export type BudgetLevel = "ok" | "warn" | "over";
+
+export interface ProjectBudget {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+  client_id: string;
+  client_name: string | null;
+  due_date: string | null;
+  budget: number;
+  actual: number;
+  remaining: number;
+  percent: number;
+  level: BudgetLevel;
+}
+
+export interface ProjectBudgetsResponse {
+  projects: ProjectBudget[];
+  totals: { budget: number; actual: number; over: number; warn: number };
+}
+
+export interface ClientProfit {
+  client_id: string;
+  name: string;
+  projects: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  margin: number | null;
+  share: number;
+  outstanding: number;
+  avgDaysToPay: number | null;
+  flag: "loss" | "low_margin" | null;
+}
+
+export interface ClientProfitabilityResponse {
+  period: { from: string; to: string };
+  clients: ClientProfit[];
+  totals: { revenue: number; cost: number; profit: number; margin: number | null; outstanding: number };
+  topClientShare: number;
+}
+
+export type HealthLevel = "healthy" | "watch" | "at_risk";
+
+export interface HealthReason {
+  code: string;
+  severity: "bad" | "good";
+  points: number;
+  text: string;
+  amount?: number;
+}
+
+export interface ClientHealth {
+  client_id: string;
+  name: string;
+  score: number;
+  level: HealthLevel;
+  reasons: HealthReason[];
+  daysSinceContact: number | null;
+}
+
+export interface ClientHealthResponse {
+  today: string;
+  clients: ClientHealth[];
+  counts: Record<HealthLevel, number>;
+}
+
+export type ContactKind = "call" | "whatsapp" | "email" | "meeting" | "visit" | "other";
+
+export interface ClientContact {
+  id: string;
+  client_id: string;
+  user_id: string | null;
+  user_name: string | null;
+  kind: ContactKind;
+  note: string | null;
+  contacted_at: string;
+}
+
+export interface CashflowEvent {
+  date: string;
+  amount: number;
+  kind: "invoice" | "renewal" | "bill" | "subscription" | "salary" | "running_costs";
+  label: string;
+  late: boolean;
+  estimate: boolean;
+}
+
+export interface Cashflow {
+  today: string;
+  days: number;
+  opening: number;
+  windows: { days: number; inflow: number; outflow: number; net: number; endingBalance: number }[];
+  weekly: { from: string; to: string; inflow: number; outflow: number; net: number; balance: number }[];
+  lowest: { balance: number; date: string };
+  firstNegativeDate: string | null;
+  overdueBeyondHorizon: number;
+  biggestIn: CashflowEvent[];
+  biggestOut: CashflowEvent[];
+  events: (CashflowEvent & { amount: number })[];
+  assumptions: string[];
+}
+
+export const insightsApi = {
+  budgets: (includeDone = false) =>
+    api.get<ProjectBudgetsResponse>("/api/statistics/project-budgets", { params: { include_done: includeDone ? 1 : undefined } }),
+  clientProfitability: (params: { from?: string; to?: string; all?: boolean }) =>
+    api.get<ClientProfitabilityResponse>("/api/statistics/client-profitability", { params: { from: params.from, to: params.to, all: params.all ? 1 : undefined } }),
+  cashflow: (days: 30 | 60 | 90, opening: number) => api.get<Cashflow>("/api/finance/cashflow", { params: { days, opening } }),
+  clientHealth: (clientId?: string) => api.get<ClientHealthResponse>("/api/clients/health", { params: { client_id: clientId } }),
+  contacts: {
+    list: (clientId: string) => api.get<{ contacts: ClientContact[] }>("/api/client-contacts", { params: { client_id: clientId } }),
+    log: (data: { client_id: string; kind: ContactKind; note?: string; contacted_at?: string }) => api.post<ClientContact>("/api/client-contacts", data),
+    delete: (id: string) => api.delete(`/api/client-contacts/${id}`),
+  },
+};
 
 export const usersApi = {
   shortList: () => api.get<{ users: { id: string; name: string }[] }>("/api/users/shortList"),
@@ -689,7 +814,13 @@ export type TaskAssigneeType = "team_member" | "client";
 export interface Task {
   id: string;
   company_id: string;
-  project_id: string;
+  /** null = an internal company task (not tied to a client project). */
+  project_id: string | null;
+  project_title: string | null;
+  created_by: string | null;
+  /** Set when this task was generated by a recurring-task rule / created from a template. */
+  recurring_task_id?: string | null;
+  template_id?: string | null;
   phase_id: string | null;
   parent_task_id: string | null;
   title: string;
@@ -726,7 +857,206 @@ export interface CreateTaskInput {
   due_date?: string | null;
 }
 
+export interface TaskListParams {
+  /** "mine" = assigned to / created by me. Managers and above may use "all". */
+  scope?: "mine" | "all";
+  /** Comma-separated statuses. */
+  status?: string;
+  priority?: TaskPriority;
+  assignee_id?: string;
+  project_id?: string;
+  internal?: boolean;
+  overdue?: boolean;
+  due_from?: string;
+  due_to?: string;
+  q?: string;
+  /** "completed" = most recently finished first. */
+  sort?: "completed";
+  page?: number;
+  limit?: number;
+}
+
+export interface TaskBulkPatch {
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assignee_id?: string | null;
+  due_date?: string | null;
+}
+
+export interface TaskSummary {
+  open: number;
+  overdue: number;
+  dueToday: number;
+  dueThisWeek: number;
+  blocked: number;
+  doneLast7Days: number;
+  workload: { user_id: string | null; name: string; open: number; overdue: number }[];
+}
+
+// ---- Task templates and recurring tasks (managers and above) ----
+export interface TaskTemplateItem {
+  id?: string;
+  title: string;
+  description?: string | null;
+  priority: TaskPriority;
+  /** Due date = project start date + this many days. */
+  due_offset_days: number;
+  checklist: string[];
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  project_type: ProjectType | null;
+  items: TaskTemplateItem[];
+}
+
+export interface TaskTemplateInput {
+  name: string;
+  description?: string | null;
+  project_type?: ProjectType | null;
+  items: TaskTemplateItem[];
+}
+
+export interface ApplyTemplateInput {
+  project_id: string;
+  start_date?: string;
+  assignee_id?: string | null;
+  /** Resend with true after the server said the template was already applied. */
+  force?: boolean;
+}
+
+export const taskTemplatesApi = {
+  list: () => api.get<{ templates: TaskTemplate[] }>("/api/task-templates"),
+  create: (data: TaskTemplateInput) => api.post<TaskTemplate>("/api/task-templates", data),
+  update: (id: string, data: Partial<TaskTemplateInput>) => api.put<TaskTemplate>(`/api/task-templates/${id}`, data),
+  delete: (id: string) => api.delete(`/api/task-templates/${id}`),
+  restoreDefaults: () => api.post<{ added: number }>("/api/task-templates/defaults"),
+  apply: (id: string, data: ApplyTemplateInput) =>
+    api.post<{ created: number; start_date: string }>(`/api/task-templates/${id}/apply`, data),
+};
+
+export type RecurringFrequency = "daily" | "weekly" | "monthly";
+
+export interface RecurringTask {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: TaskPriority;
+  project_id: string | null;
+  project_title: string | null;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  frequency: RecurringFrequency;
+  /** 0 = Sunday ... 6 = Saturday */
+  weekday: number | null;
+  /** 31 = the last day of shorter months */
+  day_of_month: number | null;
+  due_in_days: number;
+  checklist: string[];
+  start_date: string;
+  end_date: string | null;
+  next_run_date: string;
+  last_run_date: string | null;
+  status: "active" | "paused";
+  schedule: string;
+  ended: boolean;
+}
+
+export interface RecurringTaskInput {
+  title: string;
+  description?: string | null;
+  priority?: TaskPriority;
+  project_id?: string | null;
+  assignee_id?: string | null;
+  frequency: RecurringFrequency;
+  weekday?: number | null;
+  day_of_month?: number | null;
+  due_in_days?: number;
+  checklist?: string[];
+  start_date?: string;
+  end_date?: string | null;
+  status?: "active" | "paused";
+}
+
+export const recurringTasksApi = {
+  list: () => api.get<{ recurringTasks: RecurringTask[] }>("/api/recurring-tasks"),
+  create: (data: RecurringTaskInput) => api.post<RecurringTask>("/api/recurring-tasks", data),
+  update: (id: string, data: Partial<RecurringTaskInput>) => api.put<RecurringTask>(`/api/recurring-tasks/${id}`, data),
+  delete: (id: string) => api.delete(`/api/recurring-tasks/${id}`),
+};
+
+// ---- Task comments, link attachments, team report ----
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  author_id: string | null;
+  author_name: string;
+  /** Mentions are written inside the text as @[Name](userId). */
+  body: string;
+  mentions: string[];
+  created_at: string;
+  edited_at: string | null;
+  /** People mentioned who can't open the task, so were not notified (create / edit only). */
+  skipped_mentions?: string[];
+}
+
+export interface TaskAttachment {
+  id: string;
+  task_id: string;
+  name: string;
+  url: string;
+  added_by: string | null;
+  created_at: string;
+}
+
+export interface TaskReportPeriod {
+  from: string;
+  to: string;
+}
+
+export interface TaskPeriodStats {
+  created: number;
+  completed: number;
+  /** % of completed tasks (that had a due date) finished on or before it; null = none had a due date */
+  onTimeRate: number | null;
+  /** average days from creation to completion */
+  avgDays: number | null;
+}
+
+export interface TaskReport {
+  period: TaskReportPeriod;
+  previous: TaskReportPeriod;
+  current: TaskPeriodStats;
+  before: TaskPeriodStats;
+  snapshot: { open: number; overdue: number; blocked: number };
+  people: { user_id: string | null; name: string; open: number; overdue: number; blocked: number; completed: number; onTimeRate: number | null; avgDays: number | null }[];
+  projects: { project_id: string | null; title: string; open: number; overdue: number; completed: number }[];
+  rescheduled: { task_id: string; count: number; title: string; status: TaskStatus; due_date: string | null; assignee_name: string | null }[];
+}
+
 export const tasksApi = {
+  comments: {
+    list: (taskId: string) => api.get<{ comments: TaskComment[] }>("/api/task-comments", { params: { task_id: taskId } }),
+    add: (taskId: string, body: string) => api.post<TaskComment>("/api/task-comments", { task_id: taskId, body }),
+    update: (id: string, body: string) => api.put<TaskComment>(`/api/task-comments/${id}`, { body }),
+    delete: (id: string) => api.delete(`/api/task-comments/${id}`),
+  },
+  attachments: {
+    list: (taskId: string) => api.get<{ attachments: TaskAttachment[] }>("/api/task-attachments", { params: { task_id: taskId } }),
+    add: (taskId: string, url: string, name?: string) => api.post<TaskAttachment>("/api/task-attachments", { task_id: taskId, url, name }),
+    delete: (id: string) => api.delete(`/api/task-attachments/${id}`),
+  },
+  report: (params: { from?: string; to?: string }) => api.get<TaskReport>("/api/tasks/reports", { params }),
+  preferences: () => api.get<{ digest: boolean }>("/api/tasks/preferences"),
+  setPreferences: (digest: boolean) => api.put<{ digest: boolean }>("/api/tasks/preferences", { digest }),
+  listAll: (params?: TaskListParams) =>
+    api.get<{ tasks: Task[]; total: number; page: number; limit: number }>("/api/tasks", { params }),
+  summary: (scope?: "mine" | "all") => api.get<TaskSummary>("/api/tasks/summary", { params: { scope } }),
+  createGeneral: (data: CreateTaskInput & { project_id?: string | null }) => api.post<Task>("/api/tasks", data),
+  bulkUpdate: (ids: string[], patch: TaskBulkPatch) => api.post<{ updated: number; skipped: number }>("/api/tasks/bulk-update", { ids, patch }),
+  bulkDelete: (ids: string[]) => api.post<{ deleted: number; skipped: number }>("/api/tasks/bulk-delete", { ids }),
   list: (projectId: string, params?: { status?: TaskStatus; assignee_id?: string; priority?: TaskPriority }) =>
     api.get<{ tasks: Task[] }>(`/api/projects/${projectId}/tasks`, { params }),
   subtasks: (taskId: string) => api.get<{ tasks: Task[] }>(`/api/tasks/${taskId}/subtasks`),
@@ -789,7 +1119,13 @@ export type NotificationType =
   | "feedback_requested"
   | "file_uploaded"
   | "file_status_changed"
-  | "recurring_payment_due";
+  | "recurring_payment_due"
+  | "task_assigned"
+  | "task_overdue"
+  | "task_due_soon"
+  | "task_escalated"
+  | "task_comment"
+  | "task_mention";
 
 export interface AppNotification {
   id: string;
@@ -1346,3 +1682,88 @@ export interface MonthDetail {
     project_title: string | null;
   }[];
 }
+
+// ---- Global search, saved filters, the Today screen ----
+export interface SearchResults {
+  clients: { id: string; name: string; email: string | null; phone: string | null }[];
+  projects: { id: string; title: string; status: string; type: string }[];
+  tasks: { id: string; title: string; status: TaskStatus; due_date: string | null; project_id: string | null }[];
+  invoices: { id: string; invoice_number: string; status: string; total_amount: number }[];
+  vendors: { id: string; name: string; email: string | null }[];
+  meetings: { id: string; title: string; scheduled_at: string; project_id: string; status: string }[];
+}
+
+export const searchApi = {
+  search: (q: string) => api.get<{ q: string; results: SearchResults }>("/api/search", { params: { q } }),
+};
+
+export type SavedFilterPage = "tasks" | "projects" | "invoices" | "payments" | "expenses" | "clients";
+export type FilterValue = string | number | boolean;
+
+export interface SavedFilter {
+  id: string;
+  name: string;
+  params: Record<string, FilterValue>;
+  created_at: string;
+}
+
+export const savedFiltersApi = {
+  list: (page: SavedFilterPage) => api.get<{ filters: SavedFilter[] }>("/api/saved-filters", { params: { page } }),
+  create: (page: SavedFilterPage, name: string, params: Record<string, FilterValue>) =>
+    api.post<SavedFilter>("/api/saved-filters", { page, name, params }),
+  delete: (id: string) => api.delete(`/api/saved-filters/${id}`),
+};
+
+export interface TodayTask {
+  id: string;
+  title: string;
+  due_date: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignee_name: string | null;
+}
+
+export interface TodayData {
+  date: string;
+  role: UserRole;
+  /** Finance roles: clients to look after and projects close to their budget. */
+  attention: {
+    clients: { client_id: string; name: string; score: number; level: HealthLevel; reason: string | null }[];
+    budgets: { id: string; title: string; percent: number; level: BudgetLevel; budget: number; actual: number }[];
+  } | null;
+  tasks: {
+    scope: "all" | "mine";
+    overdueCount: number;
+    dueTodayCount: number;
+    blockedCount: number;
+    overdue: TodayTask[];
+    dueToday: TodayTask[];
+  } | null;
+  meetings: { id: string; title: string; time: string; project_id: string; meeting_link: string | null }[] | null;
+  /** Only for finance roles. */
+  money: {
+    in: {
+      total: number;
+      count: number;
+      items: { id: string; amount: number; project_title: string | null; method: string }[];
+      expectedToday: { total: number; count: number };
+      renewalsDue: { total: number; count: number };
+    };
+    out: {
+      total: number;
+      count: number;
+      items: { id: string; title: string; amount: number; category: string }[];
+      billsDue: { total: number; count: number; items: { id: string; bill_number: string; vendor_name: string; due_date: string; remaining_amount: number; days_overdue: number }[] };
+      subscriptionsDue: { total: number; count: number; items: { id: string; name: string; amount: number; next_due_date: string }[] };
+    };
+    collect: {
+      overdueTotal: number;
+      overdueCount: number;
+      items: { id: string; invoice_number: string; client_name: string; due_date: string; remaining_amount: number; days_overdue: number }[];
+    };
+  } | null;
+}
+
+export const todayApi = {
+  get: () => api.get<TodayData>("/api/today"),
+};

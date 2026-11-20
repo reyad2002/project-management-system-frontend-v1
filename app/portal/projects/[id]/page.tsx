@@ -47,7 +47,7 @@ export default function PortalProjectDetailPage() {
     return (
       <div className="rounded-lg border border-[var(--destructive)] bg-red-50 p-4 text-[var(--destructive)]">
         Project not found.
-        <Button variant="outline" size="sm" className="ml-4" onClick={() => router.push("/portal")}>
+        <Button variant="outline" size="sm" className="ms-4" onClick={() => router.push("/portal")}>
           Back to projects
         </Button>
       </div>
@@ -58,7 +58,7 @@ export default function PortalProjectDetailPage() {
     <div className="space-y-6">
       <Link href="/portal">
         <Button variant="ghost" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="me-2 h-4 w-4" />
           Back
         </Button>
       </Link>

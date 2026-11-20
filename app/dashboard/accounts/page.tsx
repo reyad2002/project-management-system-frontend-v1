@@ -70,7 +70,7 @@ export default function AccountsPage() {
             setFormOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add account
         </Button>
       </div>
@@ -94,7 +94,7 @@ export default function AccountsPage() {
                     <Td>
                       <p className="font-medium text-foreground">
                         {a.name}
-                        {String(a.id) === String(user?.id) && <span className="ml-2 text-xs text-(--muted)">(you)</span>}
+                        {String(a.id) === String(user?.id) && <span className="ms-2 text-xs text-(--muted)">(you)</span>}
                       </p>
                       <p className="text-xs text-(--muted)">{a.email}</p>
                     </Td>

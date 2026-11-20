@@ -65,7 +65,7 @@ export default function VendorDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-4"
+          className="ms-4"
           onClick={() => router.push("/dashboard/vendors")}
         >
           Back to list
@@ -84,12 +84,12 @@ export default function VendorDetailPage() {
       <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/vendors">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back
           </Button>
         </Link>
         <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
+          <Pencil className="me-2 h-4 w-4" />
           Edit vendor
         </Button>
       </div>
@@ -171,7 +171,7 @@ export default function VendorDetailPage() {
               setBillModalOpen(true);
             }}
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             Add bill
           </Button>
         </CardHeader>

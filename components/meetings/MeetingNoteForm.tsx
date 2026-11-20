@@ -40,6 +40,7 @@ export function MeetingNoteForm({ clientId, formId, onSubmit }: MeetingNoteFormP
     watch,
     formState: { errors },
   } = useForm<MeetingNoteFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { content: "", action_items: [] },
   });
@@ -74,7 +75,7 @@ export function MeetingNoteForm({ clientId, formId, onSubmit }: MeetingNoteFormP
             size="sm"
             onClick={() => append({ title: "", assignee_type: "team_member", assignee_id: "", due_date: "" })}
           >
-            <Plus className="mr-1.5 h-4 w-4" />
+            <Plus className="me-1.5 h-4 w-4" />
             Add item
           </Button>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -8,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: React.ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   footer?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -17,7 +18,13 @@ const sizeClasses = {
   sm: "sm:max-w-sm",
   md: "sm:max-w-md",
   lg: "sm:max-w-lg",
+  xl: "sm:max-w-3xl",
 };
+
+// Open dialogs, newest last: only the top one reacts to Escape / Tab (a dialog opened from a dialog,
+// like "+ New client" inside the project form, must not close its parent too).
+const openStack: number[] = [];
+let nextModalId = 1;
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -26,13 +33,18 @@ export function Modal({ open, onClose, title, description, size = "md", footer, 
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+  const modalId = useRef(0);
+  if (modalId.current === 0) modalId.current = nextModalId++;
 
   // Escape to close, Tab cycles within the dialog, and focus returns where it came from.
   useEffect(() => {
     if (!open) return;
+    const me = modalId.current;
+    openStack.push(me);
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (openStack[openStack.length - 1] !== me) return;
       if (e.key === "Escape") {
         onClose();
         return;
@@ -55,14 +67,18 @@ export function Modal({ open, onClose, title, description, size = "md", footer, 
     panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
     return () => {
+      const at = openStack.lastIndexOf(me);
+      if (at !== -1) openStack.splice(at, 1);
       document.removeEventListener("keydown", handleKeyDown);
       previouslyFocused?.focus?.();
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Rendered on <body>: a parent with backdrop-filter or transform (the sticky header, a card) would
+  // otherwise trap this "fixed" overlay inside itself instead of covering the screen.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
       <div
         aria-hidden
@@ -104,6 +120,7 @@ export function Modal({ open, onClose, title, description, size = "md", footer, 
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

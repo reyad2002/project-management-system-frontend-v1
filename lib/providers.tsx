@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useState } from "react";
 import { AuthProvider } from "./auth-context";
-import { publishAppError } from "./error-bus";
+import { publishAppError, toastSuccess } from "./error-bus";
 import { ErrorToast } from "@/components/ui/ErrorToast";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
           onError: (error) => publishAppError(error),
         }),
         mutationCache: new MutationCache({
-          onError: (error) => publishAppError(error),
+          // A mutation that shows its own error (e.g. "already applied, apply again?") sets meta.silentError.
+          onError: (error, _vars, _ctx, mutation) => {
+            if (!mutation.meta?.silentError) publishAppError(error);
+          },
+          // Every save says so: hooks set meta.successMessage ("Client created").
+          onSuccess: (_data, _vars, _ctx, mutation) => {
+            const message = mutation.meta?.successMessage;
+            if (typeof message === "string") toastSuccess(message);
+          },
         }),
         defaultOptions: {
           queries: { staleTime: 60 * 1000 },

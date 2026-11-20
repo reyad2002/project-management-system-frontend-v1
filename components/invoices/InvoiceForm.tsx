@@ -58,6 +58,7 @@ export function InvoiceForm({ invoice, defaultProjectId, formId, onSubmit }: Inv
     setValue,
     formState: { errors },
   } = useForm<InvoiceFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: getDefaultValues(defaultProjectId),
   });

@@ -30,6 +30,7 @@ export function AddReturnModal({ open, onClose, investmentId }: AddReturnModalPr
     reset,
     formState: { errors },
   } = useForm<FormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { amount: 0, received_date: new Date().toISOString().slice(0, 10) },
   });

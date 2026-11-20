@@ -41,6 +41,7 @@ export function ClientForm({ client, formId, onSubmit }: ClientFormProps) {
     reset,
     formState: { errors },
   } = useForm<ClientFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: defaultEmpty,
   });

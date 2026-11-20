@@ -25,6 +25,7 @@ export function usePhase(projectId: string | null, phaseId: string | null) {
 export function useCreatePhase(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Phase added" },
     mutationFn: (data: CreatePhaseInput) =>
       projectsApi.phases.create(projectId, data).then((r) => r.data),
     onSuccess: () => {
@@ -37,6 +38,7 @@ export function useCreatePhase(projectId: string) {
 export function useUpdatePhase(projectId: string, phaseId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Phase saved" },
     mutationFn: (data: UpdatePhaseInput) =>
       projectsApi.phases.update(projectId, phaseId, data).then((r) => r.data),
     onSuccess: () => {
@@ -50,6 +52,7 @@ export function useUpdatePhase(projectId: string, phaseId: string) {
 export function useDeletePhase(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Phase deleted" },
     mutationFn: (phaseId: string) =>
       projectsApi.phases.delete(projectId, phaseId),
     onSuccess: () => {

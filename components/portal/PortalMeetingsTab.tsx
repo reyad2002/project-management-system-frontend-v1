@@ -47,7 +47,7 @@ export function PortalMeetingsTab({ projectId, onNoteFirstRead }: PortalMeetings
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="ml-2 inline-flex items-center gap-1 text-xs text-(--primary) hover:underline"
+                    className="ms-2 inline-flex items-center gap-1 text-xs text-(--primary) hover:underline"
                   >
                     <Video className="h-3.5 w-3.5" />
                     Join

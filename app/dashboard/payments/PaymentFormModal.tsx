@@ -5,6 +5,7 @@ import { usePayment, useCreatePayment, useUpdatePayment } from "@/hooks/use-paym
 import { useProjectsShortList } from "@/hooks/use-projects";
 import { PaymentForm, type PaymentFormData } from "@/components/payments/PaymentForm";
 import { Modal } from "@/components/ui/Modal";
+import { rememberLast } from "@/lib/last-used";
 import { Button } from "@/components/ui/Button";
 
 const FORM_ID = "payment-form";
@@ -42,6 +43,7 @@ export function PaymentFormModal({ open, onClose, paymentId, defaultProjectId, d
       await updatePayment.mutateAsync(payload);
     } else {
       await createPayment.mutateAsync(payload);
+      rememberLast("payment_method", data.payment_method);
     }
     onClose();
   };

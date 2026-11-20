@@ -43,6 +43,7 @@ export function useProjectPayments(projectId: string | null) {
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Project created" },
     mutationFn: (data: CreateProjectInput) => projectsApi.create(data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
   });
@@ -51,6 +52,7 @@ export function useCreateProject() {
 export function useUpdateProject(id: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Project saved" },
     mutationFn: (data: Partial<CreateProjectInput>) => projectsApi.update(id, data).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
@@ -62,6 +64,7 @@ export function useUpdateProject(id: string) {
 export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Project deleted" },
     mutationFn: (id: string) => projectsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
   });

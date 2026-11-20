@@ -56,7 +56,7 @@ export function MonthDetailModal({ month, onClose }: MonthDetailModalProps) {
                   <li key={String(r.project_id)} className="flex items-center justify-between gap-3 px-3 py-2">
                     <span className="min-w-0 truncate">
                       {r.title ?? "Unknown project"}
-                      <span className="ml-2 text-xs text-(--muted)">
+                      <span className="ms-2 text-xs text-(--muted)">
                         {r.count} payment{r.count === 1 ? "" : "s"}
                       </span>
                     </span>
@@ -77,7 +77,7 @@ export function MonthDetailModal({ month, onClose }: MonthDetailModalProps) {
                   <li key={c.category} className="flex items-center justify-between gap-3 px-3 py-2">
                     <span>
                       {categoryLabel(c.category)}
-                      <span className="ml-2 text-xs text-(--muted)">
+                      <span className="ms-2 text-xs text-(--muted)">
                         {c.count} entr{c.count === 1 ? "y" : "ies"}
                       </span>
                     </span>

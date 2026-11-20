@@ -11,6 +11,8 @@ interface TaskCardProps {
   onOpen: () => void;
   onMoveNext?: () => void;
   isMoving?: boolean;
+  /** Show which project the task belongs to (the cross-project board does). */
+  showProject?: boolean;
 }
 
 function initials(name: string) {
@@ -22,15 +24,18 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export function TaskCard({ task, nextStatus, onOpen, onMoveNext, isMoving }: TaskCardProps) {
+export function TaskCard({ task, nextStatus, onOpen, onMoveNext, isMoving, showProject }: TaskCardProps) {
   const isOverdue = !!task.due_date && task.status !== "done" && new Date(task.due_date) < new Date(new Date().toDateString());
 
   const assigneeName = task.assignee_type === "client" ? task.client_assignee_name : task.assignee_name;
 
   return (
     <div className="rounded-xl border border-(--card-border) bg-(--card) p-3 shadow-sm">
-      <button type="button" onClick={onOpen} className="block w-full text-left">
+      <button type="button" onClick={onOpen} className="block w-full text-start">
         <p className="text-sm font-medium text-(--foreground)">{task.title}</p>
+        {showProject && (
+          <p className="mt-0.5 truncate text-xs text-(--muted)">{task.project_title ?? "Internal"}</p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <Badge variant={taskPriorityVariant[task.priority]} dot={false}>
             {task.priority}

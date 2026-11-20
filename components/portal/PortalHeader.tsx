@@ -57,7 +57,7 @@ export function PortalHeader() {
             onMarkAllRead={() => markAllRead.mutate()}
           />
           <Button variant="ghost" size="sm" onClick={() => logout()}>
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="me-2 h-4 w-4" />
             Logout
           </Button>
         </div>

@@ -38,7 +38,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             aria-invalid={error ? true : undefined}
             aria-describedby={errorId}
-            className={`${fieldControl} ${fieldHeight} appearance-none pr-10 ${error ? fieldBorderError : fieldBorder} ${className}`}
+            className={`${fieldControl} ${fieldHeight} appearance-none pe-10 ${error ? fieldBorderError : fieldBorder} ${className}`}
             {...props}
           >
             <option value="">Select...</option>
@@ -50,7 +50,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </select>
           <ChevronDown
             aria-hidden
-            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]"
+            className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]"
           />
         </div>
         {error && (

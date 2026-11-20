@@ -39,7 +39,7 @@ export default function InvestmentsPage() {
     <div className="space-y-6">
       <Link href="/dashboard/finance">
         <Button variant="ghost" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="me-2 h-4 w-4" />
           Back to finance
         </Button>
       </Link>
@@ -55,7 +55,7 @@ export default function InvestmentsPage() {
             setModalOpen(true);
           }}
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Add investment
         </Button>
       </div>

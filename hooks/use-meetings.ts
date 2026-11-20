@@ -20,6 +20,7 @@ export function useMeetings(projectId: string | null, params?: { status?: Meetin
 export function useCreateMeeting(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Meeting scheduled" },
     mutationFn: (data: CreateMeetingInput) => meetingsApi.create(projectId, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings", projectId] }),
   });
@@ -28,6 +29,7 @@ export function useCreateMeeting(projectId: string) {
 export function useUpdateMeeting(projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Meeting saved" },
     mutationFn: ({ id, ...data }: { id: string } & UpdateMeetingInput) =>
       meetingsApi.update(id, data).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["meetings", projectId] }),
@@ -45,6 +47,7 @@ export function useMeetingNotes(meetingId: string | null) {
 export function useAddMeetingNote(meetingId: string, projectId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { successMessage: "Note added" },
     mutationFn: (data: { content: string; action_items?: ActionItemInput[] }) =>
       meetingsApi.notes.add(meetingId, data).then((r) => r.data),
     onSuccess: () => {

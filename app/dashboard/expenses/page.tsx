@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { SavedFilters, setOnly } from "@/components/ui/SavedFilters";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { fetchAllPages } from "@/lib/export";
 import { expenseColumns } from "@/lib/export-columns";
@@ -89,7 +91,19 @@ export default function ExpensesPage() {
                 <CardHeader>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                    <FilterDrawer
+                    <SavedFilters
+                      page="expenses"
+                      current={setOnly({ type, category, project_id: projectId, from: fromDate, to: toDate })}
+                      onApply={(p) => {
+                        setType(String(p.type ?? ""));
+                        setCategory(String(p.category ?? ""));
+                        setProjectId(String(p.project_id ?? ""));
+                        setFromDate(String(p.from ?? ""));
+                        setToDate(String(p.to ?? ""));
+                        setPage(1);
+                      }}
+                    />
+<FilterDrawer
                       activeCount={chips.length}
                       onClear={() => {
                         setType("");
@@ -174,7 +188,7 @@ export default function ExpensesPage() {
                         setModalOpen(true);
                       }}
                     >
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="me-2 h-4 w-4" />
                       Add expense
                     </Button>
                   </div>
@@ -194,9 +208,10 @@ export default function ExpensesPage() {
                       </TableBody>
                     </Table>
                   ) : !data?.expenses?.length ? (
-                    <p className="py-8 text-center text-(--muted)">
-                      No expenses found.
-                    </p>
+                    <EmptyState title="No expenses found" description="Add an expense, or loosen the filters." action={<Button size="sm" onClick={() => {
+                setEditingId(null);
+                setModalOpen(true);
+              }}><Plus className="me-2 h-4 w-4" />Add expense</Button>} />
                   ) : (
                     <>
                       <Table>

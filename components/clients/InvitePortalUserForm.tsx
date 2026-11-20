@@ -23,6 +23,7 @@ export function InvitePortalUserForm({ formId, onSubmit }: InvitePortalUserFormP
     handleSubmit,
     formState: { errors },
   } = useForm<InvitePortalUserFormData>({
+    mode: "onTouched",
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "" },
   });
