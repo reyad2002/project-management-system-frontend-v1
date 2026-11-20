@@ -8,6 +8,7 @@ export function useProjects(params?: {
   limit?: number;
   client_id?: string;
   status?: string;
+  type?: string;
   q?: string;
 }) {
   return useQuery({

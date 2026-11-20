@@ -16,7 +16,7 @@ interface MeetingFormModalProps {
   meeting: Meeting | null;
 }
 
-export function MeetingFormModal({ open, onClose, projectId, clientId, meeting }: MeetingFormModalProps) {
+export function MeetingFormModal({ open, onClose, projectId, meeting }: MeetingFormModalProps) {
   const createMeeting = useCreateMeeting(projectId);
   const updateMeeting = useUpdateMeeting(projectId);
 
@@ -38,10 +38,6 @@ export function MeetingFormModal({ open, onClose, projectId, clientId, meeting }
         agenda: data.agenda || undefined,
         scheduled_at: scheduledAtIso,
         meeting_link: data.meeting_link || undefined,
-        attendee_ids: {
-          team_member_ids: data.team_member_ids,
-          client_portal_user_ids: data.client_portal_user_ids,
-        },
       });
     }
     onClose();
@@ -66,7 +62,7 @@ export function MeetingFormModal({ open, onClose, projectId, clientId, meeting }
         </>
       }
     >
-      <MeetingForm meeting={meeting} clientId={clientId} formId={FORM_ID} onSubmit={handleSubmit} />
+      <MeetingForm meeting={meeting} formId={FORM_ID} onSubmit={handleSubmit} />
     </Modal>
   );
 }

@@ -2,6 +2,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useDashboardStats } from "@/hooks/use-statistics";
+import { useAuth } from "@/lib/auth-context";
+import { can } from "@/lib/permissions";
+import Link from "next/link";
 import { UpcomingRenewalsWidget } from "@/components/recurring-revenue/UpcomingRenewalsWidget";
 import { BarChart3, Receipt, TrendingUp } from "lucide-react";
 
@@ -48,7 +51,7 @@ function formatMoney(n: number) {
   }).format(n);
 }
 
-export default function DashboardPage() {
+function FinanceDashboard() {
   const { data, isLoading, error } = useDashboardStats();
 
   if (isLoading) {
@@ -68,9 +71,10 @@ export default function DashboardPage() {
     );
   }
 
-  const { overview, financial, projectsByStatus } = data;
-  const outstandingReceivables =
-    overview.totalProjectValue - overview.totalPaymentsReceived;
+  const { overview, financial, projectsByStatus, expensesSummary } = data;
+  const outstandingReceivables = overview.outstandingReceivables;
+  const excludedFromProfit =
+    (expensesSummary.excludedFromProfit?.advance ?? 0) + (expensesSummary.excludedFromProfit?.equipment ?? 0);
 // console.log(overview);
   return (
     <div className="space-y-8">
@@ -163,6 +167,44 @@ export default function DashboardPage() {
                 {financial.profitMargin.percent}%)
               </span>
             </div>
+            {financial.adSpend > 0 && (
+              <div className="flex items-center justify-between rounded-lg border border-(--card-border) px-4 py-3 text-sm">
+                <span className="font-medium text-(--muted)">
+                  Revenue after ad spend (our fee)
+                </span>
+                <span className="font-semibold text-foreground">
+                  {formatMoney(financial.netRevenueAfterAdSpend)}
+                  <span className="ml-1 text-xs font-normal text-(--muted)">
+                    ({formatMoney(financial.adSpend)} ads)
+                  </span>
+                </span>
+              </div>
+            )}
+            {(excludedFromProfit > 0 ||
+              overview.overpaidAmount > 0 ||
+              overview.cancelledProjectsCollected > 0 ||
+              overview.testProjectsExcluded > 0) && (
+              <ul className="space-y-1 pt-1 text-xs text-(--muted)">
+                {excludedFromProfit > 0 && (
+                  <li>
+                    {formatMoney(excludedFromProfit)} of advances and equipment is recorded but kept out of profit.
+                  </li>
+                )}
+                {overview.overpaidAmount > 0 && (
+                  <li>
+                    {formatMoney(overview.overpaidAmount)} was collected above project prices — check prices and duplicates.
+                  </li>
+                )}
+                {overview.cancelledProjectsCollected > 0 && (
+                  <li>
+                    {formatMoney(overview.cancelledProjectsCollected)} was collected on cancelled projects.
+                  </li>
+                )}
+                {overview.testProjectsExcluded > 0 && (
+                  <li>{overview.testProjectsExcluded} test project(s) are excluded from all figures.</li>
+                )}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -185,6 +227,33 @@ export default function DashboardPage() {
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  if (can(user, "finance")) return <FinanceDashboard />;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--muted)">Dashboard</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">Welcome, {user?.name}</h1>
+        <p className="mt-2 text-(--muted)">Financial figures are visible to finance roles only.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/dashboard/projects">
+          <Card>
+            <CardContent className="p-5 font-medium text-(--primary)">Go to projects →</CardContent>
+          </Card>
+        </Link>
+        <Link href="/dashboard/clients">
+          <Card>
+            <CardContent className="p-5 font-medium text-(--primary)">Go to clients →</CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }

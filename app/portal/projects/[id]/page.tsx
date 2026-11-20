@@ -16,6 +16,8 @@ import { PortalCredentialsTab } from "@/components/portal/PortalCredentialsTab";
 import { PortalFilesTab } from "@/components/portal/PortalFilesTab";
 import { PendingOnClientTab } from "@/components/portal/PendingOnClientTab";
 import { FeedbackModal } from "@/components/portal/FeedbackModal";
+import { PortalReportsTab } from "@/components/portal/PortalReportsTab";
+import { hasReports } from "@/components/reports/reportMetrics";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-EG", {
@@ -88,7 +90,8 @@ export default function PortalProjectDetailPage() {
         <CardContent className="p-4 sm:p-6">
           <Tabs
             tabs={[
-              {
+              ...(project.billing_model !== "retainer"
+                ? [{
                 key: "phases",
                 label: "Phases",
                 content:
@@ -132,7 +135,17 @@ export default function PortalProjectDetailPage() {
                       ))}
                     </ul>
                   ),
-              },
+              }]
+                : []),
+              ...(hasReports(project.type)
+                ? [
+                    {
+                      key: "reports",
+                      label: "Reports",
+                      content: <PortalReportsTab projectId={id} projectType={project.type} />,
+                    },
+                  ]
+                : []),
               {
                 key: "meetings",
                 label: "Meetings",

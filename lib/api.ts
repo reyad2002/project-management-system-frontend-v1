@@ -36,6 +36,8 @@ export const authApi = {
     }),
   logout: () => api.post("/api/auth/logout"),
   me: () => api.get<User>("/api/auth/me"),
+  changePassword: (current_password: string, new_password: string) =>
+    api.post<{ message: string }>("/api/auth/change-password", { current_password, new_password }),
 };
 
 // Clients
@@ -64,6 +66,7 @@ export const projectsApi = {
     limit?: number;
     client_id?: string;
     status?: string;
+    type?: string;
     q?: string;
   }) =>
     api.get<{ projects: Project[]; pagination: Pagination }>("/api/projects", {
@@ -235,11 +238,17 @@ export interface Pagination {
   total: number;
 }
 
+export type UserRole = "owner" | "admin" | "manager" | "accountant" | "member";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   status: string;
+  role: UserRole;
+  /** Set when an admin created the account or reset its password; the user must pick their own. */
+  must_change_password?: boolean;
+  last_login_at?: string | null;
   company_id: string;
   company?: { name: string };
   created_at?: string;
@@ -274,6 +283,9 @@ export interface ClientPaymentSummary {
   remaining: number;
 }
 
+export type ProjectType = "software" | "marketing" | "branding" | "social_media" | "other";
+export type BillingModel = "fixed" | "retainer" | "hybrid";
+
 export type ProjectStatus =
   | "draft"
   | "active"
@@ -291,6 +303,12 @@ export interface Project {
   due_date: string | null;
   price: number | null;
   status: ProjectStatus;
+  type: ProjectType;
+  billing_model: BillingModel;
+  /** Test/demo projects are excluded from every dashboard and report figure. */
+  is_test: boolean;
+  /** Part of the package price that is the client's ad budget (marketing / social media). */
+  ad_budget: number;
   created_by: string;
 }
 
@@ -302,6 +320,10 @@ export interface CreateProjectInput {
   due_date?: string;
   price?: number;
   status?: ProjectStatus;
+  type?: ProjectType;
+  billing_model?: BillingModel;
+  is_test?: boolean;
+  ad_budget?: number;
 }
 
 export interface Phase {
@@ -368,6 +390,16 @@ export type CostCategory =
   | "utilities"
   | "other";
 
+/** Vendor bills keep the original categories; company expenses add payroll, ads, legal, etc. */
+export type ExpenseCostCategory =
+  | CostCategory
+  | "salary"
+  | "ad_spend"
+  | "equipment"
+  | "legal"
+  | "bank_fees"
+  | "advance";
+
 export interface Expense {
   id: string;
   company_id: string;
@@ -379,7 +411,7 @@ export interface Expense {
   project_id: string | null;
   phase_id: string | null;
   vendor_id: string | null;
-  cost_category: CostCategory;
+  cost_category: ExpenseCostCategory;
   created_at: string;
 }
 
@@ -392,7 +424,7 @@ export interface CreateExpenseInput {
   project_id?: string | null;
   phase_id?: string | null;
   vendor_id?: string | null;
-  cost_category?: CostCategory;
+  cost_category?: ExpenseCostCategory;
 }
 
 // Invoices
@@ -533,6 +565,12 @@ export interface DashboardStats {
     totalPaymentsCount: number;
     totalExpenses: number;
     totalExpensesCount: number;
+    /** Contract price − payments, per live project (cancelled and test projects excluded). */
+    outstandingReceivables: number;
+    /** Collected above the project price (price not updated, or a duplicate entry). */
+    overpaidAmount: number;
+    cancelledProjectsCollected: number;
+    testProjectsExcluded: number;
     dateRange: { from_date: string; to_date: string } | null;
   };
   projectsByStatus: Record<string, number>;
@@ -541,6 +579,9 @@ export interface DashboardStats {
     total: number;
     count: number;
     byType: { direct: number; operational: number };
+    adSpend: number;
+    /** Recorded but kept out of profit: advances are recovered via salary, equipment is capital. */
+    excludedFromProfit: { advance: number; equipment: number };
   };
   financial: FinancialStats;
 }
@@ -550,6 +591,8 @@ export interface FinancialStats {
   directExpenses: number;
   operationalExpenses: number;
   totalExpenses: number;
+  adSpend: number;
+  netRevenueAfterAdSpend: number;
   grossProfit: number;
   grossMargin: { amount: number; percent: number };
   operatingIncome: number;
@@ -604,11 +647,17 @@ export interface ProjectProfitability {
   project_id: string;
   title: string;
   recognizedRevenue: number;
+  /** Revenue is invoiced subtotal when invoices exist, otherwise cash collected. */
+  revenueBasis: "invoices" | "payments";
   collectedRevenue: number;
   totalCost: number;
   costBreakdown: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
+  adBudget: number;
+  adSpend: number;
+  /** Negative = overspent vs. the client's ad budget; positive = client money not yet spent. */
+  adBudgetRemaining: number | null;
   budgetedCost: number | null;
   budgetVariance: number | null;
 }
@@ -775,7 +824,8 @@ export interface CreateMeetingInput {
   agenda?: string;
   scheduled_at: string;
   meeting_link?: string;
-  attendee_ids: { team_member_ids?: string[]; client_portal_user_ids?: string[] };
+  /** Optional — when omitted the server invites the project client's portal users automatically. */
+  attendee_ids?: { team_member_ids?: string[]; client_portal_user_ids?: string[] };
 }
 
 export interface UpdateMeetingInput {
@@ -1115,4 +1165,119 @@ export const investmentsApi = {
   listReturns: (id: string) => api.get<{ returns: InvestmentReturn[] }>(`/api/investments/${id}/returns`),
   addReturn: (id: string, data: { amount: number; received_date: string }) =>
     api.post<InvestmentReturn>(`/api/investments/${id}/returns`, data),
+};
+
+// ---- Project monthly reports (marketing / social media) ----
+export interface ProjectReport {
+  id: string;
+  project_id: string;
+  /** First day of the month, "YYYY-MM-DD". */
+  period_month: string;
+  ad_spend: number;
+  reach: number | null;
+  leads: number | null;
+  followers_gained: number | null;
+  posts_published: number | null;
+  summary: string | null;
+}
+
+export interface ProjectReportInput {
+  /** "YYYY-MM" (or "YYYY-MM-DD"); the server stores the first of the month. */
+  period_month?: string;
+  ad_spend?: number;
+  reach?: number | null;
+  leads?: number | null;
+  followers_gained?: number | null;
+  posts_published?: number | null;
+  summary?: string | null;
+}
+
+export const projectReportsApi = {
+  list: (projectId: string) => api.get<{ reports: ProjectReport[] }>(`/api/projects/${projectId}/reports`),
+  create: (projectId: string, data: ProjectReportInput) =>
+    api.post<ProjectReport>(`/api/projects/${projectId}/reports`, data),
+  update: (id: string, data: ProjectReportInput) => api.put<ProjectReport>(`/api/project-reports/${id}`, data),
+  delete: (id: string) => api.delete(`/api/project-reports/${id}`),
+};
+
+// ---- Accounts (owner / admin only) ----
+export type AccountStatus = "active" | "inactive" | "blocked";
+
+export interface Account {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: string;
+  must_change_password: boolean;
+  last_login_at: string | null;
+  created_at: string;
+}
+
+export interface CreateAccountInput {
+  name: string;
+  email: string;
+  role: UserRole;
+  /** Optional. Leave out and the server generates a strong temporary password. */
+  password?: string;
+}
+
+export interface UpdateAccountInput {
+  name?: string;
+  role?: UserRole;
+}
+
+export const accountsApi = {
+  list: () => api.get<{ accounts: Account[]; assignableRoles: UserRole[] }>("/api/accounts"),
+  create: (data: CreateAccountInput) =>
+    api.post<Account & { temporary_password: string }>("/api/accounts", data),
+  update: (id: string, data: UpdateAccountInput) => api.put<Account>(`/api/accounts/${id}`, data),
+  setStatus: (id: string, status: AccountStatus) => api.patch<Account>(`/api/accounts/${id}/status`, { status }),
+  resetPassword: (id: string) =>
+    api.post<{ id: string; temporary_password: string }>(`/api/accounts/${id}/reset-password`),
+};
+
+// ---- Audit log (owner / admin only, read-only) ----
+export interface AuditLogEntry {
+  id: string;
+  occurred_at: string;
+  actor_type: "user" | "client_portal_user" | "system" | "anonymous";
+  actor_id: string | null;
+  actor_name: string | null;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  outcome: "success" | "failure";
+  status_code: number | null;
+  method: string | null;
+  path: string | null;
+  ip: string | null;
+  summary: string | null;
+}
+
+export interface AuditLogDetail extends AuditLogEntry {
+  user_agent: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface AuditLogFilters {
+  from_date?: string;
+  to_date?: string;
+  actor_id?: string;
+  actor_type?: string;
+  action?: string;
+  entity_type?: string;
+  entity_id?: string;
+  outcome?: "success" | "failure";
+  q?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const auditLogsApi = {
+  list: (params: AuditLogFilters) =>
+    api.get<{ logs: AuditLogEntry[]; pagination: Pagination }>("/api/audit-logs", { params }),
+  get: (id: string) => api.get<AuditLogDetail>(`/api/audit-logs/${id}`),
 };

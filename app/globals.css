@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
-/* CodeWars EG brand — pine #004935 / mint #1cb78d, sourced from Final logo.svg */
+/* Light-only: `dark:` utilities apply only under an explicit .dark ancestor (never set). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* CodeWars EG brand — light theme: white surfaces, soft mint tint, green accents. The OS dark
+   preference is intentionally ignored (the dashboard is light-only). */
 :root {
+  color-scheme: light;
   /* ---- Brand + semantic colour ---- */
-  --background: #f6f8f7;
+  --background: #f5fbf8;
   --foreground: #0b1f1a;
   --card: #ffffff;
   --card-border: #dce6e2;
   --muted: #4b615a;
-  --muted-bg: #eef3f1;
-  --primary: #004935;
-  --primary-hover: #00301f;
+  --muted-bg: #eef7f2;
+  --primary: #0d7a5c;
+  --primary-hover: #0a6249;
   --primary-foreground: #f6f8f7;
   --accent: #1cb78d;
   --accent-muted: #dff5ee;
@@ -22,68 +27,26 @@
   --destructive-hover: #8f2e26;
   --destructive-bg: #fbe7e4;
   --on-destructive: #ffffff;
-  --sidebar-bg: #004935;
-  --sidebar-foreground: #f6f8f7;
-  --sidebar-muted: #9fd6c2;
-  --sidebar-hover: #0b5c43;
-  --sidebar-active: #1cb78d;
+  --sidebar-bg: #ffffff;
+  --sidebar-foreground: #123a2e;
+  --sidebar-muted: #5d7a70;
+  --sidebar-hover: #e6f5ee;
+  --sidebar-active: #0d7a5c;
   --border: #dce6e2;
   --border-subtle: #e8efec;
   --ring: #1cb78d;
-  --ring-offset: #f6f8f7;
+  --ring-offset: #f5fbf8;
 
   /* ---- Elevation planes ---- */
   --surface: #ffffff;
   --surface-raised: #fbfcfc;
-  --surface-sunken: #f1f5f3;
+  --surface-sunken: #eef7f2;
 
   /* ---- Elevation (tinted to the background hue, never neutral black) ---- */
   --elevation-xs: 0 1px 2px 0 rgb(11 31 26 / 0.05);
   --elevation-sm: 0 1px 3px 0 rgb(11 31 26 / 0.07), 0 1px 2px -1px rgb(11 31 26 / 0.05);
   --elevation-md: 0 4px 12px -2px rgb(11 31 26 / 0.08), 0 2px 6px -2px rgb(11 31 26 / 0.05);
   --elevation-lg: 0 12px 32px -8px rgb(11 31 26 / 0.16), 0 4px 12px -4px rgb(11 31 26 / 0.08);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #071410;
-    --foreground: #eaf3ef;
-    --card: #0e221b;
-    --card-border: #1f3d33;
-    --muted: #9fbaaf;
-    --muted-bg: #132a22;
-    --primary: #3aa07e;
-    --primary-hover: #4db892;
-    --primary-foreground: #052018;
-    --accent: #33d6a6;
-    --accent-muted: #0f3226;
-    --success: #33d6a6;
-    --success-bg: #0f3226;
-    --warning: #e5b463;
-    --warning-bg: #332711;
-    --destructive: #e68579;
-    --destructive-hover: #d9695d;
-    --destructive-bg: #3a1815;
-    --on-destructive: #2a100d;
-    --sidebar-bg: #04241a;
-    --sidebar-foreground: #eaf3ef;
-    --sidebar-muted: #8fc4b1;
-    --sidebar-hover: #0f3226;
-    --sidebar-active: #33d6a6;
-    --border: #1f3d33;
-    --border-subtle: #183028;
-    --ring: #33d6a6;
-    --ring-offset: #071410;
-
-    --surface: #0e221b;
-    --surface-raised: #142c23;
-    --surface-sunken: #0a1b15;
-
-    --elevation-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
-    --elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.30);
-    --elevation-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 6px -2px rgb(0 0 0 / 0.35);
-    --elevation-lg: 0 12px 32px -8px rgb(0 0 0 / 0.60), 0 4px 12px -4px rgb(0 0 0 / 0.45);
-  }
 }
 
 /* Semantic aliases — resolved lazily, so they follow the active theme automatically. */

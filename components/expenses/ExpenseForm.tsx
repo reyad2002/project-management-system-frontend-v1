@@ -31,7 +31,16 @@ const schema = z.object({
     "rent",
     "utilities",
     "other",
+    "salary",
+    "ad_spend",
+    "equipment",
+    "legal",
+    "bank_fees",
+    "advance",
   ]),
+}).refine((d) => d.type !== "direct" || !!d.project_id, {
+  message: "Pick the project this cost belongs to, or set the type to Operational",
+  path: ["project_id"],
 });
 
 export type ExpenseFormData = z.infer<typeof schema>;
@@ -78,6 +87,7 @@ export function ExpenseForm({
   ];
 
   const selectedProjectId = watch("project_id");
+  const selectedCategory = watch("cost_category");
   const { data: phasesData } = usePhases(selectedProjectId || null, { page: 1, limit: 100 });
   const phaseOptions = [
     { value: "", label: "No specific phase" },
@@ -162,6 +172,13 @@ export function ExpenseForm({
           )}
         />
       </div>
+      {(selectedCategory === "advance" || selectedCategory === "equipment") && (
+        <p className="rounded-lg bg-(--muted-bg) px-3 py-2 text-xs text-(--muted)">
+          {selectedCategory === "advance"
+            ? "Not counted in profit. The advance is recovered by deducting it from the salary, so record the salary at its full (gross) amount."
+            : "Not counted in profit. Equipment is a purchase of an asset, not a running cost."}
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <Controller
           name="project_id"

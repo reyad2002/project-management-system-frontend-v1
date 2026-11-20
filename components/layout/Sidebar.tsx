@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { can, type Area } from "@/lib/permissions";
 import {
   LayoutDashboard,
   Users,
@@ -19,6 +20,8 @@ import {
   BadgeAlert,
   CalendarClock,
   TrendingUp,
+  ShieldCheck,
+  ScrollText,
 } from "lucide-react";
 
 interface NavLink {
@@ -29,6 +32,8 @@ interface NavLink {
 
 interface NavGroup {
   label: string;
+  /** Group is shown only to roles with this access (see lib/permissions.ts). */
+  area?: Area;
   items: NavLink[];
 }
 
@@ -41,6 +46,7 @@ const topLinks: NavLink[] = [
 const groups: NavGroup[] = [
   {
     label: "Finance",
+    area: "finance",
     items: [
       { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
       { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
@@ -51,11 +57,20 @@ const groups: NavGroup[] = [
   },
   {
     label: "Reports",
+    area: "finance",
     items: [
       { href: "/dashboard/finance", label: "Finance overview", icon: Wallet },
       { href: "/dashboard/finance/investments", label: "Investments", icon: TrendingUp },
       { href: "/dashboard/invoices/ar-aging", label: "AR aging", icon: Landmark },
       { href: "/dashboard/invoices/ap-aging", label: "AP aging", icon: BadgeAlert },
+    ],
+  },
+  {
+    label: "Admin",
+    area: "accounts",
+    items: [
+      { href: "/dashboard/accounts", label: "Accounts", icon: ShieldCheck },
+      { href: "/dashboard/audit-log", label: "Audit log", icon: ScrollText },
     ],
   },
 ];
@@ -95,7 +110,8 @@ function BrandMark({ className = "" }: { className?: string }) {
 
 export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const visibleGroups = groups.filter((g) => !g.area || can(user, g.area));
   const activeHref = getActiveHref(pathname);
 
   const handleLinkClick = () => {
@@ -136,11 +152,11 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         }`}
       />
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-56 flex-col bg-(--sidebar-bg) text-(--sidebar-foreground) shadow-lg transition-transform duration-200 ease-out md:translate-x-0 md:shadow-none ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-56 flex-col border-r border-(--border) bg-(--sidebar-bg) text-(--sidebar-foreground) shadow-lg transition-transform duration-200 ease-out md:translate-x-0 md:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="flex h-14 items-center justify-between border-b border-(--sidebar-hover) px-4">
+        <div className="flex h-14 items-center justify-between border-b border-(--border) px-4">
           <Link
             href="/dashboard"
             className="flex items-center gap-2 text-sm font-bold tracking-wide"
@@ -161,7 +177,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
         <nav className="flex-1 space-y-1 overflow-auto p-2">
           {topLinks.map(renderLink)}
-          {groups.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label} className="pt-2">
               <p className="px-3 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-wider text-(--sidebar-foreground)/55">
                 {group.label}
@@ -171,7 +187,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="border-t border-(--sidebar-hover) p-2">
+        <div className="border-t border-(--border) p-2">
           <Button
             type="button"
             variant="ghost"

@@ -11,10 +11,11 @@ export function useInvoices(params?: {
   status?: InvoiceStatus;
   from_date?: string;
   to_date?: string;
-}) {
+}, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["invoices", params],
     queryFn: () => invoicesApi.list(params).then((r) => r.data),
+    enabled: options?.enabled ?? true,
   });
 }
 

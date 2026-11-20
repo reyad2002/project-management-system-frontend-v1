@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
-import { PROJECT_STATUSES } from "@/lib/constants";
+import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/constants";
 import { projectStatusVariant } from "@/lib/status-badges";
 import { ProjectFormModal } from "./ProjectFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -32,6 +32,7 @@ export default function ProjectsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [clientId, setClientId] = useState(searchParams.get("client_id") ?? "");
   const [status, setStatus] = useState("");
+  const [type, setType] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
@@ -44,6 +45,7 @@ export default function ProjectsPage() {
     q: q || undefined,
     client_id: clientId || undefined,
     status: status || undefined,
+    type: type || undefined,
   });
   const { data: clientsData } = useClientsShortList();
   const deleteProject = useDeleteProject();
@@ -122,6 +124,18 @@ export default function ProjectsPage() {
                 setPage(1);
               }}
             />
+            <Select
+              label="Type"
+              options={[
+                { value: "", label: "All" },
+                ...PROJECT_TYPES.map((t) => ({ value: t.value, label: t.label })),
+              ]}
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+                setPage(1);
+              }}
+            />
             <Button type="submit" variant="secondary">
               Search
             </Button>
@@ -132,13 +146,14 @@ export default function ProjectsPage() {
             <Table>
               <TableHead>
                 <Th>Title</Th>
+                <Th>Type</Th>
                 <Th>Status</Th>
                 <Th>Price</Th>
                 <Th>Due date</Th>
                 <Th align="right">Actions</Th>
               </TableHead>
               <TableBody>
-                <TableSkeletonRows columns={5} />
+                <TableSkeletonRows columns={6} />
               </TableBody>
             </Table>
           ) : !data?.projects?.length ? (
@@ -150,6 +165,7 @@ export default function ProjectsPage() {
               <Table>
                 <TableHead>
                   <Th>Title</Th>
+                  <Th>Type</Th>
                   <Th>Status</Th>
                   <Th>Price</Th>
                   <Th>Due date</Th>
@@ -158,7 +174,19 @@ export default function ProjectsPage() {
                 <TableBody>
                   {data.projects.map((p) => (
                     <TableRow key={p.id}>
-                      <Td className="font-medium text-foreground">{p.title}</Td>
+                      <Td className="font-medium text-foreground">
+                        {p.title}
+                        {p.is_test && (
+                          <Badge variant="warning" dot={false} className="ml-2">
+                            Test
+                          </Badge>
+                        )}
+                      </Td>
+                      <Td className="text-(--muted)">
+                        {PROJECT_TYPES.find((t) => t.value === p.type)?.label ?? p.type}
+                        {p.billing_model === "retainer" && " · Retainer"}
+                        {p.billing_model === "hybrid" && " · Hybrid"}
+                      </Td>
                       <Td>
                         <Badge variant={projectStatusVariant[p.status]}>{p.status.replace("_", " ")}</Badge>
                       </Td>

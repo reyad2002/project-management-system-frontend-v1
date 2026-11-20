@@ -18,6 +18,9 @@ const schema = z.object({
   payment_date: z.string().min(1, "Date is required"),
   payment_method: z.enum(["cash", "bank_transfer", "credit_card", "other"]),
   notes: z.string().optional(),
+}).refine((d) => d.payment_method !== "cash" || !!d.notes?.trim(), {
+  message: "Cash payments need a note (who received it / receipt no.)",
+  path: ["notes"],
 });
 
 export type PaymentFormData = z.infer<typeof schema>;
@@ -88,6 +91,7 @@ export function PaymentForm({
   ];
   const selectedInvoice = openInvoices.find((inv) => String(inv.id) === selectedInvoiceId);
   const watchedAmount = watch("amount");
+  const watchedMethod = watch("payment_method");
   const isOverpaying = !!selectedInvoice && watchedAmount > selectedInvoice.remaining_amount;
 
   useEffect(() => {
@@ -170,7 +174,11 @@ export function PaymentForm({
           />
         )}
       />
-      <Textarea label="Notes" error={errors.notes?.message} {...register("notes")} />
+      <Textarea
+        label={watchedMethod === "cash" ? "Notes * (who received the cash / receipt no.)" : "Notes"}
+        error={errors.notes?.message}
+        {...register("notes")}
+      />
     </form>
   );
 }

@@ -6,6 +6,20 @@ export const PROJECT_STATUSES = [
   { value: "completed", label: "Completed" },
 ] as const;
 
+export const PROJECT_TYPES = [
+  { value: "software", label: "Software" },
+  { value: "marketing", label: "Marketing" },
+  { value: "branding", label: "Branding" },
+  { value: "social_media", label: "Social media" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const BILLING_MODELS = [
+  { value: "fixed", label: "Fixed price (phases)" },
+  { value: "retainer", label: "Monthly retainer" },
+  { value: "hybrid", label: "Hybrid" },
+] as const;
+
 export const PAYMENT_METHODS = [
   { value: "cash", label: "Cash" },
   { value: "bank_transfer", label: "Bank Transfer" },
@@ -28,6 +42,12 @@ export const COST_CATEGORIES = [
   { value: "rent", label: "Rent" },
   { value: "utilities", label: "Utilities" },
   { value: "other", label: "Other" },
+  { value: "salary", label: "Salary" },
+  { value: "ad_spend", label: "Ad spend (paid to ad platforms)" },
+  { value: "legal", label: "Legal & contracts" },
+  { value: "bank_fees", label: "Bank fees" },
+  { value: "equipment", label: "Equipment (not counted in profit)" },
+  { value: "advance", label: "Employee advance (not counted in profit)" },
 ] as const;
 
 export const INVOICE_STATUSES = [

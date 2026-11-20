@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
-import { PROJECT_STATUSES } from "@/lib/constants";
+import { PROJECT_STATUSES, PROJECT_TYPES, BILLING_MODELS } from "@/lib/constants";
 import type { Project } from "@/lib/api";
 
 const schema = z
@@ -18,6 +18,10 @@ const schema = z
     start_date: z.string().optional(),
     due_date: z.string().optional(),
     price: z.union([z.string(), z.number()]).optional(),
+    type: z.enum(["software", "marketing", "branding", "social_media", "other"]),
+    billing_model: z.enum(["fixed", "retainer", "hybrid"]),
+    ad_budget: z.union([z.string(), z.number()]).optional(),
+    is_test: z.boolean(),
     status: z
       .enum(["draft", "active", "on_hold", "cancelled", "completed"])
       .optional(),
@@ -47,6 +51,10 @@ const defaultEmpty: ProjectFormData = {
   due_date: "",
   price: "",
   status: "active",
+  type: "software",
+  billing_model: "fixed",
+  ad_budget: "",
+  is_test: false,
 };
 
 export function ProjectForm({
@@ -66,6 +74,9 @@ export function ProjectForm({
     defaultValues: defaultEmpty,
   });
 
+  const billingModel = useWatch({ control, name: "billing_model" });
+  const projectType = useWatch({ control, name: "type" });
+
   useEffect(() => {
     if (project) {
       reset({
@@ -76,6 +87,10 @@ export function ProjectForm({
         due_date: project.due_date ?? "",
         price: project.price ?? "",
         status: project.status ?? "active",
+        type: project.type ?? "software",
+        billing_model: project.billing_model ?? "fixed",
+        ad_budget: project.ad_budget ? project.ad_budget : "",
+        is_test: project.is_test ?? false,
       });
     } else {
       reset(defaultEmpty);
@@ -100,6 +115,34 @@ export function ProjectForm({
           />
         )}
       />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Controller
+          name="type"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Project type *"
+              options={PROJECT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+              error={errors.type?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+        <Controller
+          name="billing_model"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              label="Billing *"
+              options={BILLING_MODELS.map((b) => ({ value: b.value, label: b.label }))}
+              error={errors.billing_model?.message}
+              {...field}
+              onChange={(v) => field.onChange(v)}
+            />
+          )}
+        />
+      </div>
       <Input
         label="Title *"
         error={errors.title?.message}
@@ -126,7 +169,7 @@ export function ProjectForm({
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Input
-          label="Price"
+          label={billingModel === "retainer" ? "Monthly fee" : billingModel === "hybrid" ? "Price / monthly fee" : "Price"}
           type="number"
           step="0.01"
           min="0"
@@ -151,6 +194,20 @@ export function ProjectForm({
           )}
         />
       </div>
+      {(projectType === "marketing" || projectType === "social_media") && (
+        <Input
+          label="Client ad budget (inside the price)"
+          type="number"
+          step="0.01"
+          min="0"
+          error={errors.ad_budget?.message}
+          {...register("ad_budget")}
+        />
+      )}
+      <label className="flex items-center gap-2 text-sm text-(--muted)">
+        <input type="checkbox" {...register("is_test")} />
+        Test / demo project (excluded from dashboard and reports)
+      </label>
     </form>
   );
 }

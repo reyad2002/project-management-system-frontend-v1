@@ -6,6 +6,7 @@ import { publishAppError } from "./error-bus";
 import type {
   Invoice,
   Project,
+  ProjectReport,
   ClientPaymentSummary,
   AppNotification,
   Meeting,
@@ -57,7 +58,7 @@ export interface PortalUser {
   client_name: string;
 }
 
-export type PortalProject = Pick<Project, "id" | "title" | "status" | "start_date" | "due_date">;
+export type PortalProject = Pick<Project, "id" | "title" | "status" | "type" | "billing_model" | "start_date" | "due_date">;
 
 export interface PortalPhase {
   id: string;
@@ -111,6 +112,11 @@ export const portalMeetingsApi = {
 // ---- Project Links ----
 export const portalProjectLinksApi = {
   list: (projectId: string) => portalApi.get<{ links: ProjectLink[] }>(`/api/portal/projects/${projectId}/links`),
+};
+
+// ---- Monthly reports (marketing / social media) ----
+export const portalProjectReportsApi = {
+  list: (projectId: string) => portalApi.get<{ reports: ProjectReport[] }>(`/api/portal/projects/${projectId}/reports`),
 };
 
 // ---- Pending on Client (Tasks) ----

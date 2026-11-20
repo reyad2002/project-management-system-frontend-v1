@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { ChangePasswordModal } from "@/components/auth/ChangePasswordModal";
 
 export default function DashboardLayout({
   children,
@@ -32,6 +33,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
+      <ChangePasswordModal forced open={!!user.must_change_password} onClose={() => {}} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col md:ml-56">
         <Header onMenuClick={() => setSidebarOpen((prev) => !prev)} />

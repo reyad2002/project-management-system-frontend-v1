@@ -5,6 +5,7 @@ import {
   portalDataApi,
   portalMeetingsApi,
   portalProjectLinksApi,
+  portalProjectReportsApi,
   portalTasksApi,
   portalCredentialsApi,
   portalFeedbackApi,
@@ -24,6 +25,14 @@ export function usePortalProject(id: string | null) {
     queryKey: ["portal", "projects", id],
     queryFn: () => portalDataApi.project(id!).then((r) => r.data),
     enabled: !!id,
+  });
+}
+
+export function usePortalProjectReports(projectId: string | null) {
+  return useQuery({
+    queryKey: ["portal", "projects", projectId, "reports"],
+    queryFn: () => portalProjectReportsApi.list(projectId!).then((r) => r.data),
+    enabled: !!projectId,
   });
 }
 

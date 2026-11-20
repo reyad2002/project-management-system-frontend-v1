@@ -12,11 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Tabs } from "@/components/ui/Tabs";
-import { KanbanBoard } from "@/components/tasks/KanbanBoard";
 import { MeetingsTab } from "@/components/meetings/MeetingsTab";
 import { ProjectLinksTab } from "@/components/projects/ProjectLinksTab";
 import { CredentialsTab } from "@/components/credentials/CredentialsTab";
 import { FilesTab } from "@/components/files/FilesTab";
+import { useAuth } from "@/lib/auth-context";
+import { can } from "@/lib/permissions";
+import { ProjectReportsTab } from "@/components/reports/ProjectReportsTab";
+import { hasReports } from "@/components/reports/reportMetrics";
+import { PROJECT_TYPES, BILLING_MODELS } from "@/lib/constants";
 import {
   ArrowLeft,
   Calendar,
@@ -27,12 +31,10 @@ import {
   Star,
 } from "lucide-react";
 import { PhaseFormModal } from "./PhaseFormModal";
-import { TaskFormModal } from "./TaskFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InvoiceFormModal } from "@/app/dashboard/invoices/InvoiceFormModal";
 import { PaymentFormModal } from "@/app/dashboard/payments/PaymentFormModal";
 import { invoiceStatusVariant } from "@/lib/status-badges";
-import type { Task } from "@/lib/api";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-EG", {
@@ -46,11 +48,14 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { user } = useAuth();
+  const financeAllowed = can(user, "finance");
+  const credentialsAllowed = can(user, "credentials");
   const { data: project, isLoading, error } = useProject(id);
-  const { data: paymentsData } = useProjectPayments(id);
+  const { data: paymentsData } = useProjectPayments(financeAllowed ? id : null);
   const { data: phasesData } = usePhases(id, { page: 1, limit: 100 });
-  const { data: invoicesData } = useInvoices({ project_id: id, limit: 100 });
-  const { data: profitability } = useProjectProfitability(id);
+  const { data: invoicesData } = useInvoices({ project_id: id, limit: 100 }, { enabled: financeAllowed });
+  const { data: profitability } = useProjectProfitability(financeAllowed ? id : undefined);
   const { data: feedbackData } = useFeedback(id);
   const deletePhase = useDeletePhase(id);
   const [phaseModalOpen, setPhaseModalOpen] = useState(false);
@@ -58,8 +63,6 @@ export default function ProjectDetailPage() {
   const [deletingPhaseId, setDeletingPhaseId] = useState<string | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -90,11 +93,6 @@ export default function ProjectDetailPage() {
   const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
   const remaining = (project.price ?? 0) - totalPaid;
 
-  const openTask = (task: Task) => {
-    setOpenTaskId(task.id);
-    setTaskModalOpen(true);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -109,9 +107,17 @@ export default function ProjectDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>{project.title}</CardTitle>
-          <p className="mt-1 text-sm capitalize text-[var(--muted)]">
-            {project.status.replace("_", " ")}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
+            <span className="capitalize">{project.status.replace("_", " ")}</span>
+            <Badge variant="info" dot={false}>
+              {PROJECT_TYPES.find((t) => t.value === project.type)?.label ?? project.type}
+            </Badge>
+            {project.billing_model !== "fixed" && (
+              <Badge variant="neutral" dot={false}>
+                {BILLING_MODELS.find((b) => b.value === project.billing_model)?.label}
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {project.details && (
@@ -133,7 +139,7 @@ export default function ProjectDetailPage() {
             {project.price != null && (
               <span className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-[var(--muted)]" />
-                Price: {formatMoney(project.price)}
+                {project.billing_model === "retainer" ? "Monthly fee" : "Price"}: {formatMoney(project.price)}
               </span>
             )}
             {feedbackData && feedbackData.feedback.length > 0 && (
@@ -151,27 +157,6 @@ export default function ProjectDetailPage() {
           <Tabs
             tabs={[
               {
-                key: "tasks",
-                label: "Tasks",
-                content: (
-                  <div className="space-y-4">
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setOpenTaskId(null);
-                          setTaskModalOpen(true);
-                        }}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add task
-                      </Button>
-                    </div>
-                    <KanbanBoard projectId={id} onOpenTask={openTask} />
-                  </div>
-                ),
-              },
-              {
                 key: "meetings",
                 label: "Meetings",
                 content: <MeetingsTab projectId={id} clientId={project.client_id} />,
@@ -186,7 +171,17 @@ export default function ProjectDetailPage() {
                 label: "Files",
                 content: <FilesTab projectId={id} />,
               },
-              {
+              ...(hasReports(project.type)
+                ? [
+                    {
+                      key: "reports",
+                      label: "Reports",
+                      content: <ProjectReportsTab projectId={id} projectType={project.type} />,
+                    },
+                  ]
+                : []),
+              ...(project.billing_model !== "retainer"
+                ? [{
                 key: "phases",
                 label: "Phases",
                 content: (
@@ -242,8 +237,10 @@ export default function ProjectDetailPage() {
                     )}
                   </div>
                 ),
-              },
-              {
+              }]
+                : []),
+              ...(financeAllowed
+                ? [{
                 key: "invoices",
                 label: "Invoices",
                 content: (
@@ -276,13 +273,17 @@ export default function ProjectDetailPage() {
                     )}
                   </div>
                 ),
-              },
-              {
+              }]
+                : []),
+              ...(credentialsAllowed
+                ? [{
                 key: "credentials",
                 label: "Credentials",
                 content: <CredentialsTab projectId={id} />,
-              },
-              {
+              }]
+                : []),
+              ...(financeAllowed
+                ? [{
                 key: "payments",
                 label: "Payments",
                 content: (
@@ -320,7 +321,8 @@ export default function ProjectDetailPage() {
                     </Link>
                   </div>
                 ),
-              },
+              }]
+                : []),
               ...(profitability && "grossProfit" in profitability
                 ? [
                     {
@@ -342,6 +344,30 @@ export default function ProjectDetailPage() {
                               {formatMoney(profitability.grossProfit)} ({profitability.grossMargin}%)
                             </p>
                           </div>
+                          {profitability.adBudget > 0 && (
+                            <>
+                              <div>
+                                <p className="text-sm text-[var(--muted)]">Client ad budget</p>
+                                <p className="text-lg font-semibold">{formatMoney(profitability.adBudget)}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-[var(--muted)]">Ad spend so far</p>
+                                <p className="text-lg font-semibold">{formatMoney(profitability.adSpend)}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-[var(--muted)]">
+                                  {(profitability.adBudgetRemaining ?? 0) < 0 ? "Overspent vs budget" : "Unspent client budget"}
+                                </p>
+                                <p className="text-lg font-semibold">
+                                  {formatMoney(Math.abs(profitability.adBudgetRemaining ?? 0))}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                          <p className="text-xs text-[var(--muted)] sm:col-span-3">
+                            Revenue basis: {profitability.revenueBasis === "invoices" ? "invoices issued" : "payments received (no invoices on this project)"}.
+                            Advances and equipment are not counted as project costs.
+                          </p>
                         </div>
                       ),
                     },
@@ -373,17 +399,6 @@ export default function ProjectDetailPage() {
         }}
         projectId={id}
         phaseId={editingPhaseId}
-      />
-
-      <TaskFormModal
-        open={taskModalOpen}
-        onClose={() => {
-          setTaskModalOpen(false);
-          setOpenTaskId(null);
-        }}
-        projectId={id}
-        clientId={project.client_id}
-        taskId={openTaskId}
       />
 
       <ConfirmDialog

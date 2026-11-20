@@ -30,6 +30,10 @@ export function ProjectFormModal({ open, onClose, projectId, clientOptions }: Pr
       due_date: data.due_date || undefined,
       price: data.price ? Number(data.price) : undefined,
       status: data.status,
+      type: data.type,
+      billing_model: data.billing_model,
+      ad_budget: data.ad_budget ? Number(data.ad_budget) : 0,
+      is_test: data.is_test,
     };
     if (projectId && project) {
       await updateProject.mutateAsync(payload);

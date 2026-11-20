@@ -2,7 +2,8 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/Button";
-import { LogOut, Menu, User } from "lucide-react";
+import { KeyRound, LogOut, Menu, User } from "lucide-react";
+import { ChangePasswordModal } from "@/components/auth/ChangePasswordModal";
 import { useEffect, useRef, useState } from "react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/use-notifications";
@@ -16,6 +17,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const displayName = user?.name || "User";
   const userInitial = displayName.charAt(0).toUpperCase();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const { data: notificationsData } = useNotifications({ limit: 10 });
   const markRead = useMarkNotificationRead();
@@ -47,6 +49,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   }, []);
 
   return (
+    <>
     <header className="sticky top-0 z-30 border-b border-(--border) bg-(--card)/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
@@ -112,6 +115,18 @@ export function Header({ onMenuClick }: HeaderProps) {
                   className="w-full justify-start"
                   onClick={() => {
                     setProfileOpen(false);
+                    setPasswordOpen(true);
+                  }}
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Change password
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setProfileOpen(false);
                     logout();
                   }}
                 >
@@ -134,5 +149,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
     </header>
+    <ChangePasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
+    </>
   );
 }
