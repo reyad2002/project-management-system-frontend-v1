@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useFinancialStats, useArAging, useApAging } from "@/hooks/use-statistics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
 import { Input } from "@/components/ui/Input";
 import { UpcomingRenewalsWidget } from "@/components/recurring-revenue/UpcomingRenewalsWidget";
 import { SubscriptionsComparisonWidget } from "@/components/recurring-expenses/SubscriptionsComparisonWidget";
@@ -96,23 +97,32 @@ export default function FinancePage() {
               Cash
             </button>
           </div>
-          <Input
-            type="date"
-            label="From"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-          />
-          <Input
-            type="date"
-            label="To"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-          />
-          {data.dateRange && (
-            <p className="text-xs text-[var(--muted)]">
-              {data.dateRange.from_date} → {data.dateRange.to_date}
-            </p>
-          )}
+          <FilterDrawer
+            title="Period"
+            activeCount={fromDate || toDate ? 1 : 0}
+            onClear={() => {
+              setFromDate("");
+              setToDate("");
+            }}
+            chips={
+              fromDate || toDate
+                ? [
+                    {
+                      key: "period",
+                      label: `${fromDate || "…"} → ${toDate || "…"}`,
+                      onRemove: () => {
+                        setFromDate("");
+                        setToDate("");
+                      },
+                    },
+                  ]
+                : []
+            }
+          >
+            <Input type="date" label="From" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            <Input type="date" label="To" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+            <p className="text-xs text-[var(--muted)]">Both dates are needed for the period to apply.</p>
+          </FilterDrawer>
         </div>
       </div>
 

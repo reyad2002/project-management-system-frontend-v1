@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { projectColumns } from "@/lib/export-columns";
+import { projectsApi } from "@/lib/api";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/constants";
@@ -56,6 +61,33 @@ export default function ProjectsPage() {
       label: c.name,
     })) ?? [];
 
+  const chips: FilterChip[] = [
+    clientId && {
+      key: "client",
+      label: `Client: ${clientOptions.find((c) => c.value === clientId)?.label ?? clientId}`,
+      onRemove: () => {
+        setClientId("");
+        setPage(1);
+      },
+    },
+    status && {
+      key: "status",
+      label: `Status: ${PROJECT_STATUSES.find((s) => s.value === status)?.label ?? status}`,
+      onRemove: () => {
+        setStatus("");
+        setPage(1);
+      },
+    },
+    type && {
+      key: "type",
+      label: `Type: ${PROJECT_TYPES.find((t) => t.value === type)?.label ?? type}`,
+      onRemove: () => {
+        setType("");
+        setPage(1);
+      },
+    },
+  ].filter(Boolean) as FilterChip[];
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setQ(searchInput);
@@ -87,59 +119,72 @@ export default function ProjectsPage() {
 
       <Card>
         <CardHeader>
-          <form
-            onSubmit={handleSearch}
-            className="flex flex-wrap items-end gap-2"
-          >
-            <div className="relative flex-1 min-w-50">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
-              <Input
-                className="pl-9"
-                placeholder="Search title or details..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+          <div className="flex flex-wrap items-center gap-2">
+            <form onSubmit={handleSearch} className="flex min-w-48 flex-1 gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search title or details..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+              </div>
+              <Button type="submit" variant="secondary">
+                Search
+              </Button>
+            </form>
+            <FilterDrawer
+              activeCount={[clientId, status, type].filter(Boolean).length}
+              onClear={() => {
+                setClientId("");
+                setStatus("");
+                setType("");
+                setPage(1);
+              }}
+              chips={chips}
+            >
+              <Select
+                label="Client"
+                options={[{ value: "", label: "All" }, ...clientOptions]}
+                value={clientId}
+                onChange={(e) => {
+                  setClientId(e.target.value);
+                  setPage(1);
+                }}
               />
-            </div>
-            <Select
-              label="Client"
-              options={[{ value: "", label: "All" }, ...clientOptions]}
-              value={clientId}
-              onChange={(e) => {
-                setClientId(e.target.value);
-                setPage(1);
-              }}
+              <Select
+                label="Status"
+                options={[{ value: "", label: "All" }, ...PROJECT_STATUSES.map((s) => ({ value: s.value, label: s.label }))]}
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setPage(1);
+                }}
+              />
+              <Select
+                label="Type"
+                options={[{ value: "", label: "All" }, ...PROJECT_TYPES.map((t) => ({ value: t.value, label: t.label }))]}
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </FilterDrawer>
+            <ExportButton
+              filename="projects"
+              sheet="Projects"
+              columns={projectColumns((id) => clientOptions.find((c) => c.value === String(id))?.label ?? "")}
+              fetchRows={() =>
+                fetchAllPages((page, limit) =>
+                  projectsApi
+                    .list({ page, limit, q: q || undefined, client_id: clientId || undefined, status: status || undefined, type: type || undefined })
+                    .then((r) => ({ rows: r.data.projects, total: r.data.pagination.total })),
+                )
+              }
             />
-            <Select
-              label="Status"
-              options={[
-                { value: "", label: "All" },
-                ...PROJECT_STATUSES.map((s) => ({
-                  value: s.value,
-                  label: s.label,
-                })),
-              ]}
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(1);
-              }}
-            />
-            <Select
-              label="Type"
-              options={[
-                { value: "", label: "All" },
-                ...PROJECT_TYPES.map((t) => ({ value: t.value, label: t.label })),
-              ]}
-              value={type}
-              onChange={(e) => {
-                setType(e.target.value);
-                setPage(1);
-              }}
-            />
-            <Button type="submit" variant="secondary">
-              Search
-            </Button>
-          </form>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

@@ -5,10 +5,17 @@ import { useExpenses, useDeleteExpense } from "@/hooks/use-expenses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Input } from "@/components/ui/Input";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { expenseColumns } from "@/lib/export-columns";
+import { expensesApi } from "@/lib/api";
 import { Tabs } from "@/components/ui/Tabs";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { EXPENSE_TYPES } from "@/lib/constants";
+import { EXPENSE_TYPES, COST_CATEGORIES } from "@/lib/constants";
+import { useProjectsShortList } from "@/hooks/use-projects";
 import { ExpenseFormModal } from "./ExpenseFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SubscriptionsTab } from "@/components/recurring-expenses/SubscriptionsTab";
@@ -24,6 +31,10 @@ function formatMoney(n: number) {
 export default function ExpensesPage() {
   const [page, setPage] = useState(1);
   const [type, setType] = useState("");
+  const [category, setCategory] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(
@@ -34,8 +45,25 @@ export default function ExpensesPage() {
     page,
     limit: 10,
     type: type || undefined,
+    cost_category: category || undefined,
+    project_id: projectId || undefined,
+    from_date: fromDate || undefined,
+    to_date: toDate || undefined,
   });
+  const { data: projectsData } = useProjectsShortList();
   const deleteExpense = useDeleteExpense();
+  const projectOptions = projectsData?.projects?.map((p) => ({ value: String(p.id), label: p.title })) ?? [];
+  const reset = (setter: (v: string) => void) => () => {
+    setter("");
+    setPage(1);
+  };
+  const chips: FilterChip[] = [
+    type && { key: "type", label: `Type: ${EXPENSE_TYPES.find((t) => t.value === type)?.label ?? type}`, onRemove: reset(setType) },
+    category && { key: "cat", label: `Category: ${COST_CATEGORIES.find((c) => c.value === category)?.label ?? category}`, onRemove: reset(setCategory) },
+    projectId && { key: "proj", label: `Project: ${projectOptions.find((p) => p.value === projectId)?.label ?? projectId}`, onRemove: reset(setProjectId) },
+    fromDate && { key: "from", label: `From ${fromDate}`, onRemove: reset(setFromDate) },
+    toDate && { key: "to", label: `To ${toDate}`, onRemove: reset(setToDate) },
+  ].filter(Boolean) as FilterChip[];
 
   const pagination = data?.pagination;
   const totalPages = pagination
@@ -59,22 +87,87 @@ export default function ExpensesPage() {
             content: (
               <Card>
                 <CardHeader>
-                  <div className="flex flex-wrap items-end justify-between gap-2">
-                    <Select
-                      label="Type"
-                      options={[
-                        { value: "", label: "All" },
-                        ...EXPENSE_TYPES.map((t) => ({
-                          value: t.value,
-                          label: t.label,
-                        })),
-                      ]}
-                      value={type}
-                      onChange={(e) => {
-                        setType(e.target.value);
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                    <FilterDrawer
+                      activeCount={chips.length}
+                      onClear={() => {
+                        setType("");
+                        setCategory("");
+                        setProjectId("");
+                        setFromDate("");
+                        setToDate("");
                         setPage(1);
                       }}
+                      chips={chips}
+                    >
+                      <Select
+                        label="Type"
+                        options={[{ value: "", label: "All" }, ...EXPENSE_TYPES.map((t) => ({ value: t.value, label: t.label }))]}
+                        value={type}
+                        onChange={(e) => {
+                          setType(e.target.value);
+                          setPage(1);
+                        }}
+                      />
+                      <Select
+                        label="Category"
+                        options={[{ value: "", label: "All" }, ...COST_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))]}
+                        value={category}
+                        onChange={(e) => {
+                          setCategory(e.target.value);
+                          setPage(1);
+                        }}
+                      />
+                      <Select
+                        label="Project"
+                        options={[{ value: "", label: "All projects" }, ...projectOptions]}
+                        value={projectId}
+                        onChange={(e) => {
+                          setProjectId(e.target.value);
+                          setPage(1);
+                        }}
+                      />
+                      <Input
+                        type="date"
+                        label="From date"
+                        value={fromDate}
+                        onChange={(e) => {
+                          setFromDate(e.target.value);
+                          setPage(1);
+                        }}
+                      />
+                      <Input
+                        type="date"
+                        label="To date"
+                        value={toDate}
+                        onChange={(e) => {
+                          setToDate(e.target.value);
+                          setPage(1);
+                        }}
+                      />
+                    </FilterDrawer>
+                    <ExportButton
+                      filename="expenses"
+                      sheet="Expenses"
+                      columns={expenseColumns((id) => projectOptions.find((p) => p.value === String(id))?.label ?? "")}
+                      fetchRows={() =>
+                        fetchAllPages((page, limit) =>
+                          expensesApi
+                            .list({
+                              page,
+                              limit,
+                              type: type || undefined,
+                              cost_category: category || undefined,
+                              project_id: projectId || undefined,
+                              from_date: fromDate || undefined,
+                              to_date: toDate || undefined,
+                            })
+                            .then((r) => ({ rows: r.data.expenses, total: r.data.pagination.total })),
+                        )
+                      }
                     />
+                    </div>
                     <Button
                       onClick={() => {
                         setEditingId(null);

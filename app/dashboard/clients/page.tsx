@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { clientColumns } from "@/lib/export-columns";
+import { clientsApi } from "@/lib/api";
 import { ClientFormModal } from "./ClientFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -57,7 +61,8 @@ export default function ClientsPage() {
 
       <Card>
         <CardHeader>
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+          <form onSubmit={handleSearch} className="flex min-w-48 flex-1 gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
               <Input
@@ -71,6 +76,17 @@ export default function ClientsPage() {
               Search
             </Button>
           </form>
+          <ExportButton
+            filename="clients"
+            sheet="Clients"
+            columns={clientColumns}
+            fetchRows={() =>
+              fetchAllPages((page, limit) =>
+                clientsApi.list({ page, limit, q: q || undefined }).then((r) => ({ rows: r.data.clients, total: r.data.pagination.total })),
+              )
+            }
+          />
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

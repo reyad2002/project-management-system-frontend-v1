@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fileSafe, reportColumns } from "@/lib/export-columns";
 import { useProjectReports, useSaveProjectReport, useDeleteProjectReport } from "@/hooks/use-project-reports";
 import type { ProjectReport, ProjectReportInput, ProjectType } from "@/lib/api";
 import { REPORT_METRICS, costPerLead, formatMetric, formatMonth, type MetricDef } from "./reportMetrics";
@@ -17,6 +19,8 @@ const FORM_ID = "project-report-form";
 interface ProjectReportsTabProps {
   projectId: string;
   projectType: ProjectType;
+  /** Used to name the exported file. */
+  projectTitle?: string;
 }
 
 type FormState = { period: string; summary: string } & Record<string, string>;
@@ -38,7 +42,7 @@ function toForm(report: ProjectReport | null, metrics: MetricDef[]): FormState {
   return state;
 }
 
-export function ProjectReportsTab({ projectId, projectType }: ProjectReportsTabProps) {
+export function ProjectReportsTab({ projectId, projectType, projectTitle }: ProjectReportsTabProps) {
   const metrics = REPORT_METRICS[projectType] ?? [];
   const showCostPerLead = metrics.some((m) => m.key === "leads") && metrics.some((m) => m.key === "ad_spend");
 
@@ -95,10 +99,18 @@ export function ProjectReportsTab({ projectId, projectType }: ProjectReportsTabP
         <p className="text-sm text-(--muted)">
           Monthly results for this project. The client sees these in their portal.
         </p>
-        <Button size="sm" onClick={() => openModal(null)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add report
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            filename={`monthly-reports-${fileSafe(projectTitle, "project")}`}
+            sheet="Monthly reports"
+            columns={reportColumns(projectType)}
+            fetchRows={async () => [...reports].sort((a, b) => a.period_month.localeCompare(b.period_month))}
+          />
+          <Button size="sm" onClick={() => openModal(null)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add report
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (

@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { subscriptionColumns } from "@/lib/export-columns";
+import { recurringExpensesApi } from "@/lib/api";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
@@ -34,14 +39,37 @@ export function SubscriptionsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div className="max-w-xs flex-1">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+        <FilterDrawer
+          activeCount={status ? 1 : 0}
+          onClear={() => setStatus("")}
+          chips={
+            status
+              ? [{ key: "status", label: `Status: ${statusOptions.find((s) => s.value === status)?.label ?? status}`, onRemove: () => setStatus("") }]
+              : []
+          }
+        >
           <CustomSelect
-            label="Filter by status"
+            label="Status"
             options={statusOptions}
             value={status}
             onChange={(v) => setStatus(v as RecurringExpenseStatus | "")}
           />
+        </FilterDrawer>
+        <ExportButton
+          filename="subscriptions"
+          sheet="Subscriptions"
+          columns={subscriptionColumns}
+          fetchRows={() =>
+            fetchAllPages((page, limit) =>
+              recurringExpensesApi.list({ status: status || undefined, page, limit }).then((r) => ({
+                rows: r.data.recurringExpenses,
+                total: r.data.pagination?.total ?? r.data.recurringExpenses.length,
+              })),
+            )
+          }
+        />
         </div>
         <Button
           size="sm"
@@ -54,6 +82,10 @@ export function SubscriptionsTab() {
           Add subscription
         </Button>
       </div>
+
+      <p className="text-sm text-(--muted)">
+        Subscriptions marked <span className="font-medium text-foreground">Auto</span> are deducted by themselves on the due date, monthly or yearly — the expense appears in your books without any action.
+      </p>
 
       {isLoading ? (
         <p className="text-(--muted)">Loading...</p>

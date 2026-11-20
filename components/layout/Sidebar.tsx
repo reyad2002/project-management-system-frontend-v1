@@ -22,6 +22,7 @@ import {
   TrendingUp,
   ShieldCheck,
   ScrollText,
+  CalendarRange,
 } from "lucide-react";
 
 interface NavLink {
@@ -60,6 +61,7 @@ const groups: NavGroup[] = [
     area: "finance",
     items: [
       { href: "/dashboard/finance", label: "Finance overview", icon: Wallet },
+      { href: "/dashboard/finance/monthly", label: "Monthly report", icon: CalendarRange },
       { href: "/dashboard/finance/investments", label: "Investments", icon: TrendingUp },
       { href: "/dashboard/invoices/ar-aging", label: "AR aging", icon: Landmark },
       { href: "/dashboard/invoices/ap-aging", label: "AP aging", icon: BadgeAlert },

@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { vendorColumns } from "@/lib/export-columns";
+import { vendorsApi } from "@/lib/api";
 import { VendorFormModal } from "./VendorFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -57,7 +61,8 @@ export default function VendorsPage() {
 
       <Card>
         <CardHeader>
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+          <form onSubmit={handleSearch} className="flex min-w-48 flex-1 gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
               <Input
@@ -71,6 +76,17 @@ export default function VendorsPage() {
               Search
             </Button>
           </form>
+          <ExportButton
+            filename="vendors"
+            sheet="Vendors"
+            columns={vendorColumns}
+            fetchRows={() =>
+              fetchAllPages((page, limit) =>
+                vendorsApi.list({ page, limit, q: q || undefined }).then((r) => ({ rows: r.data.vendors, total: r.data.pagination.total })),
+              )
+            }
+          />
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

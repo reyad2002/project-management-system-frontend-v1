@@ -23,6 +23,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { VendorBillFormModal } from "./VendorBillFormModal";
+import { VendorFormModal } from "@/app/dashboard/vendors/VendorFormModal";
 import { VendorBillPaymentModal } from "./VendorBillPaymentModal";
 import { vendorBillStatusVariant } from "@/lib/status-badges";
 import type { VendorBill } from "@/lib/api";
@@ -43,6 +44,7 @@ export default function VendorDetailPage() {
   const { data: billsData } = useVendorBills({ vendor_id: id, limit: 100 });
   const deleteBill = useDeleteVendorBill();
 
+  const [editOpen, setEditOpen] = useState(false);
   const [billModalOpen, setBillModalOpen] = useState(false);
   const [editingBillId, setEditingBillId] = useState<string | null>(null);
   const [deletingBillId, setDeletingBillId] = useState<string | null>(null);
@@ -79,13 +81,17 @@ export default function VendorDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/vendors">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
         </Link>
+        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit vendor
+        </Button>
       </div>
 
       <Card>
@@ -263,6 +269,8 @@ export default function VendorDetailPage() {
           });
         }}
       />
+
+      <VendorFormModal open={editOpen} onClose={() => setEditOpen(false)} vendorId={vendor.id} />
     </div>
   );
 }

@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { ArrowLeft, Calendar, Send, Ban, Wallet } from "lucide-react";
+import { ArrowLeft, Calendar, Send, Ban, Wallet, Pencil } from "lucide-react";
 import { PaymentFormModal } from "@/app/dashboard/payments/PaymentFormModal";
+import { InvoiceFormModal } from "@/app/dashboard/invoices/InvoiceFormModal";
 import { invoiceStatusVariant } from "@/lib/status-badges";
 
 function formatMoney(n: number) {
@@ -30,6 +31,7 @@ export default function InvoiceDetailPage() {
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -62,6 +64,12 @@ export default function InvoiceDetailPage() {
           </Button>
         </Link>
         <div className="flex gap-2">
+          {invoice.status === "draft" && (
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          )}
           {invoice.status === "draft" && (
             <Button variant="secondary" size="sm" loading={sendInvoice.isPending} onClick={() => sendInvoice.mutate(invoice.id)}>
               <Send className="mr-2 h-4 w-4" />
@@ -170,6 +178,8 @@ export default function InvoiceDetailPage() {
           cancelInvoice.mutate({ id: invoice.id }, { onSuccess: () => setCancelOpen(false) });
         }}
       />
+
+      <InvoiceFormModal open={editOpen} onClose={() => setEditOpen(false)} invoiceId={invoice.id} />
     </div>
   );
 }

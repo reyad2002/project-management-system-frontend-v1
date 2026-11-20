@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft } from "lucide-react";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { apAgingColumns } from "@/lib/export-columns";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-EG", {
@@ -96,7 +98,10 @@ export default function ApAgingPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Overdue bills</CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle>Overdue bills</CardTitle>
+                <ExportButton filename="ap-aging" sheet="AP aging" columns={apAgingColumns} fetchRows={async () => data.bills ?? []} />
+              </div>
             </CardHeader>
             <CardContent>
               {!data.bills?.length ? (

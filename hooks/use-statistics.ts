@@ -83,3 +83,19 @@ export function useSubscriptionsSummary() {
     },
   });
 }
+
+export function useMonthlyReport(year: number, enabled = true) {
+  return useQuery({
+    queryKey: ["statistics", "monthly", year],
+    queryFn: () => statisticsApi.monthly(year).then((r) => r.data),
+    enabled,
+  });
+}
+
+export function useMonthDetail(month: string | null) {
+  return useQuery({
+    queryKey: ["statistics", "monthly", "detail", month],
+    queryFn: () => statisticsApi.monthDetail(month!).then((r) => r.data),
+    enabled: !!month,
+  });
+}

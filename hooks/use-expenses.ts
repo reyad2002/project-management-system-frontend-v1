@@ -7,6 +7,8 @@ export function useExpenses(params?: {
   page?: number;
   limit?: number;
   type?: string;
+  cost_category?: string;
+  project_id?: string;
   from_date?: string;
   to_date?: string;
   q?: string;

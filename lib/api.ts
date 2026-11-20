@@ -192,6 +192,8 @@ export const expensesApi = {
     page?: number;
     limit?: number;
     type?: string;
+    cost_category?: string;
+    project_id?: string;
     from_date?: string;
     to_date?: string;
     q?: string;
@@ -225,6 +227,9 @@ export const statisticsApi = {
     api.get<AgingReport>("/api/statistics/ar-aging", { params }),
   apAging: (params?: { vendor_id?: string; project_id?: string }) =>
     api.get<AgingReport>("/api/statistics/ap-aging", { params }),
+  monthly: (year: number, withRows = false) =>
+    api.get<YearReport>("/api/statistics/monthly", { params: { year, rows: withRows ? 1 : undefined } }),
+  monthDetail: (month: string) => api.get<MonthDetail>(`/api/statistics/monthly/${month}`),
   projectProfitability: (params?: { project_id?: string }) =>
     api.get<
       ProjectProfitability | { projects: ProjectProfitability[]; pagination: Pagination }
@@ -1045,8 +1050,8 @@ export interface HostingSummary {
 }
 
 export const recurringRevenueApi = {
-  list: (params?: { status?: RecurringRevenueStatus; client_id?: string; project_id?: string }) =>
-    api.get<{ recurringRevenue: RecurringRevenue[] }>("/api/recurring-revenue", { params }),
+  list: (params?: { status?: RecurringRevenueStatus; client_id?: string; project_id?: string; page?: number; limit?: number }) =>
+    api.get<{ recurringRevenue: RecurringRevenue[]; pagination?: Pagination }>("/api/recurring-revenue", { params }),
   create: (data: CreateRecurringRevenueInput) => api.post<RecurringRevenue>("/api/recurring-revenue", data),
   update: (id: string, data: Partial<CreateRecurringRevenueInput> & { status?: RecurringRevenueStatus }) =>
     api.patch<RecurringRevenue>(`/api/recurring-revenue/${id}`, data),
@@ -1073,6 +1078,8 @@ export interface RecurringExpense {
   next_due_date: string;
   last_paid_date: string | null;
   status: RecurringExpenseStatus;
+  /** When true the daily job records the expense on the due date and moves the date forward. */
+  auto_charge: boolean;
   notes: string | null;
   created_at: string;
 }
@@ -1084,12 +1091,13 @@ export interface CreateRecurringExpenseInput {
   amount: number;
   billing_cycle: BillingCycle;
   next_due_date: string;
+  auto_charge?: boolean;
   notes?: string;
 }
 
 export const recurringExpensesApi = {
-  list: (params?: { status?: RecurringExpenseStatus; linked_project_id?: string }) =>
-    api.get<{ recurringExpenses: RecurringExpense[] }>("/api/recurring-expenses", { params }),
+  list: (params?: { status?: RecurringExpenseStatus; linked_project_id?: string; page?: number; limit?: number }) =>
+    api.get<{ recurringExpenses: RecurringExpense[]; pagination?: Pagination }>("/api/recurring-expenses", { params }),
   create: (data: CreateRecurringExpenseInput) => api.post<RecurringExpense>("/api/recurring-expenses", data),
   update: (id: string, data: Partial<CreateRecurringExpenseInput> & { status?: RecurringExpenseStatus }) =>
     api.patch<RecurringExpense>(`/api/recurring-expenses/${id}`, data),
@@ -1281,3 +1289,60 @@ export const auditLogsApi = {
     api.get<{ logs: AuditLogEntry[]; pagination: Pagination }>("/api/audit-logs", { params }),
   get: (id: string) => api.get<AuditLogDetail>(`/api/audit-logs/${id}`),
 };
+
+// ---- Monthly financial report (cash basis) ----
+export interface MonthlyFinance {
+  /** "2026-03", or the year for the totals row. */
+  month: string;
+  revenue: number;
+  paymentsCount: number;
+  directExpenses: number;
+  operationalExpenses: number;
+  totalExpenses: number;
+  adSpend: number;
+  grossProfit: number;
+  netProfit: number;
+  /** null when the month had no revenue (a percentage would be meaningless). */
+  marginPercent: number | null;
+  /** Recorded but kept out of profit: employee advances (recovered via salary) and equipment purchases. */
+  excludedFromProfit: { advance: number; equipment: number };
+}
+
+export interface YearReportRows {
+  payments: { date: string; project_title: string | null; amount: number; method: string | null; notes: string | null }[];
+  expenses: {
+    date: string;
+    title: string;
+    type: string;
+    cost_category: string;
+    project_title: string | null;
+    amount: number;
+    description: string | null;
+    in_profit: boolean;
+  }[];
+}
+
+export interface YearReport {
+  year: number;
+  basis: "cash";
+  months: MonthlyFinance[];
+  totals: MonthlyFinance;
+  /** Only when requested with rows=1 (used by the Excel export). */
+  rows?: YearReportRows;
+}
+
+export interface MonthDetail {
+  month: string;
+  summary: MonthlyFinance;
+  revenueByProject: { project_id: string; title: string | null; amount: number; count: number }[];
+  expensesByCategory: { category: string; amount: number; count: number }[];
+  topExpenses: {
+    id: string;
+    title: string;
+    expense_date: string;
+    amount: number;
+    type: string;
+    cost_category: string;
+    project_title: string | null;
+  }[];
+}

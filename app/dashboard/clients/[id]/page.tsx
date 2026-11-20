@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useClient, useClientPaymentSummary } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PortalAccessCard } from "@/components/clients/PortalAccessCard";
+import { ClientFormModal } from "@/app/dashboard/clients/ClientFormModal";
 import {
   ArrowLeft,
   Mail,
@@ -13,6 +15,7 @@ import {
   MapPin,
   FileText,
   DollarSign,
+  Pencil,
 } from "lucide-react";
 
 function formatMoney(n: number) {
@@ -29,6 +32,7 @@ export default function ClientDetailPage() {
   const id = params.id as string;
   const { data: client, isLoading, error } = useClient(id);
   const { data: paymentSummary } = useClientPaymentSummary(id);
+  const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -56,13 +60,17 @@ export default function ClientDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/clients">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
         </Link>
+        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit client
+        </Button>
       </div>
 
       <Card>
@@ -153,6 +161,8 @@ export default function ClientDetailPage() {
           <Button variant="secondary">View projects</Button>
         </Link>
       </div>
+
+      <ClientFormModal open={editOpen} onClose={() => setEditOpen(false)} clientId={client.id} />
     </div>
   );
 }

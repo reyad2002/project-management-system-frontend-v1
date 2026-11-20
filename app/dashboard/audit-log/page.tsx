@@ -4,6 +4,11 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { auditColumns } from "@/lib/export-columns";
+import { auditLogsApi } from "@/lib/api";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
@@ -47,6 +52,16 @@ export default function AuditLogPage() {
     setPage(1);
   };
 
+  const accountName = (id: string) => accountsData?.accounts.find((a) => String(a.id) === id)?.name ?? id;
+  const chips: FilterChip[] = [
+    filters.actor_id && { key: "actor", label: `Person: ${accountName(filters.actor_id)}`, onRemove: () => set({ actor_id: undefined, actor_type: undefined }) },
+    filters.action && { key: "action", label: `Action: ${actionLabel(filters.action)}`, onRemove: () => set({ action: undefined }) },
+    filters.entity_type && { key: "entity", label: `Record: ${filters.entity_type.replace(/_/g, " ")}`, onRemove: () => set({ entity_type: undefined }) },
+    filters.outcome && { key: "outcome", label: `Result: ${filters.outcome}`, onRemove: () => set({ outcome: undefined }) },
+    filters.from_date && { key: "from", label: `From ${filters.from_date}`, onRemove: () => set({ from_date: undefined }) },
+    filters.to_date && { key: "to", label: `To ${filters.to_date}`, onRemove: () => set({ to_date: undefined }) },
+  ].filter(Boolean) as FilterChip[];
+
   const logs = data?.logs ?? [];
   const total = data?.pagination.total ?? 0;
   const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
@@ -62,70 +77,80 @@ export default function AuditLogPage() {
 
       <Card>
         <CardHeader>
-          <form
-            className="flex flex-wrap items-end gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              set({ q: searchInput.trim() || undefined });
-            }}
-          >
-            <div className="relative min-w-48 flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
-              <Input
-                className="pl-9"
-                placeholder="Search the summary..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </div>
-            <Select
-              label="Person"
-              options={[
-                { value: "", label: "Anyone" },
-                ...(accountsData?.accounts ?? []).map((a) => ({ value: String(a.id), label: a.name })),
-              ]}
-              value={filters.actor_id ?? ""}
-              onChange={(e) => set({ actor_id: e.target.value || undefined, actor_type: e.target.value ? "user" : undefined })}
-            />
-            <Select
-              label="Action"
-              options={[{ value: "", label: "All" }, ...Object.keys(ACTION_LABELS).map((k) => ({ value: k, label: ACTION_LABELS[k] }))]}
-              value={filters.action ?? ""}
-              onChange={(e) => set({ action: e.target.value || undefined })}
-            />
-            <Select
-              label="Record"
-              options={[{ value: "", label: "All" }, ...ENTITY_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, " ") }))]}
-              value={filters.entity_type ?? ""}
-              onChange={(e) => set({ entity_type: e.target.value || undefined })}
-            />
-            <Select
-              label="Result"
-              options={[
-                { value: "", label: "All" },
-                { value: "success", label: "Succeeded" },
-                { value: "failure", label: "Failed" },
-              ]}
-              value={filters.outcome ?? ""}
-              onChange={(e) => set({ outcome: (e.target.value || undefined) as AuditLogFilters["outcome"] })}
-            />
-            <Input label="From" type="date" value={filters.from_date ?? ""} onChange={(e) => set({ from_date: e.target.value || undefined })} />
-            <Input label="To" type="date" value={filters.to_date ?? ""} onChange={(e) => set({ to_date: e.target.value || undefined })} />
-            <Button type="submit" variant="secondary">
-              Search
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setFilters({});
-                setSearchInput("");
-                setPage(1);
+          <div className="flex flex-wrap items-center gap-2">
+            <form
+              className="flex min-w-48 flex-1 gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                set({ q: searchInput.trim() || undefined });
               }}
             >
-              Clear
-            </Button>
-          </form>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--muted)" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search the summary..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+              </div>
+              <Button type="submit" variant="secondary">
+                Search
+              </Button>
+            </form>
+            <FilterDrawer
+              activeCount={chips.length}
+              onClear={() => {
+                setFilters((f) => ({ q: f.q }));
+                setPage(1);
+              }}
+              chips={chips}
+            >
+              <Select
+                label="Person"
+                options={[
+                  { value: "", label: "Anyone" },
+                  ...(accountsData?.accounts ?? []).map((a) => ({ value: String(a.id), label: a.name })),
+                ]}
+                value={filters.actor_id ?? ""}
+                onChange={(e) => set({ actor_id: e.target.value || undefined, actor_type: e.target.value ? "user" : undefined })}
+              />
+              <Select
+                label="Action"
+                options={[{ value: "", label: "All" }, ...Object.keys(ACTION_LABELS).map((k) => ({ value: k, label: ACTION_LABELS[k] }))]}
+                value={filters.action ?? ""}
+                onChange={(e) => set({ action: e.target.value || undefined })}
+              />
+              <Select
+                label="Record"
+                options={[{ value: "", label: "All" }, ...ENTITY_TYPES.map((t) => ({ value: t, label: t.replace(/_/g, " ") }))]}
+                value={filters.entity_type ?? ""}
+                onChange={(e) => set({ entity_type: e.target.value || undefined })}
+              />
+              <Select
+                label="Result"
+                options={[
+                  { value: "", label: "All" },
+                  { value: "success", label: "Succeeded" },
+                  { value: "failure", label: "Failed" },
+                ]}
+                value={filters.outcome ?? ""}
+                onChange={(e) => set({ outcome: (e.target.value || undefined) as AuditLogFilters["outcome"] })}
+              />
+              <Input label="From" type="date" value={filters.from_date ?? ""} onChange={(e) => set({ from_date: e.target.value || undefined })} />
+              <Input label="To" type="date" value={filters.to_date ?? ""} onChange={(e) => set({ to_date: e.target.value || undefined })} />
+            </FilterDrawer>
+            <ExportButton
+              filename="audit-log"
+              sheet="Audit log"
+              columns={auditColumns}
+              fetchRows={() =>
+                fetchAllPages((p, limit) =>
+                  auditLogsApi.list({ ...filters, page: p, limit }).then((r) => ({ rows: r.data.logs, total: r.data.pagination.total })),
+                )
+              }
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

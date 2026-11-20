@@ -7,6 +7,11 @@ import { useProjectsShortList } from "@/hooks/use-projects";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { paymentColumns } from "@/lib/export-columns";
+import { paymentsApi } from "@/lib/api";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
@@ -70,6 +75,41 @@ export default function PaymentsPage() {
       label: c.name,
     })) ?? [];
 
+  const chips: FilterChip[] = [
+    projectId && {
+      key: "project",
+      label: `Project: ${projectOptions.find((p) => p.value === projectId)?.label ?? projectId}`,
+      onRemove: () => {
+        setProjectId("");
+        setPage(1);
+      },
+    },
+    clientId && {
+      key: "client",
+      label: `Client: ${clientOptions.find((c) => c.value === clientId)?.label ?? clientId}`,
+      onRemove: () => {
+        setClientId("");
+        setPage(1);
+      },
+    },
+    fromDate && {
+      key: "from",
+      label: `From ${fromDate}`,
+      onRemove: () => {
+        setFromDate("");
+        setPage(1);
+      },
+    },
+    toDate && {
+      key: "to",
+      label: `To ${toDate}`,
+      onRemove: () => {
+        setToDate("");
+        setPage(1);
+      },
+    },
+  ].filter(Boolean) as FilterChip[];
+
   const pagination = data?.pagination;
   const totalPages = pagination
     ? Math.ceil(pagination.total / pagination.limit)
@@ -95,13 +135,21 @@ export default function PaymentsPage() {
 
       <Card>
         <CardHeader>
-          <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+          <FilterDrawer
+            activeCount={[projectId, clientId, fromDate, toDate].filter(Boolean).length}
+            onClear={() => {
+              setProjectId("");
+              setClientId("");
+              setFromDate("");
+              setToDate("");
+              setPage(1);
+            }}
+            chips={chips}
+          >
             <Select
               label="Project"
-              options={[
-                { value: "", label: "All projects" },
-                ...projectOptions,
-              ]}
+              options={[{ value: "", label: "All projects" }, ...projectOptions]}
               value={projectId}
               onChange={(e) => {
                 setProjectId(e.target.value);
@@ -135,6 +183,26 @@ export default function PaymentsPage() {
                 setPage(1);
               }}
             />
+          </FilterDrawer>
+          <ExportButton
+            filename="payments"
+            sheet="Payments"
+            columns={paymentColumns((id) => projectOptions.find((p) => p.value === String(id))?.label ?? "")}
+            fetchRows={() =>
+              fetchAllPages((page, limit) =>
+                paymentsApi
+                  .list({
+                    page,
+                    limit,
+                    project_id: projectId || undefined,
+                    client_id: clientId || undefined,
+                    from_date: fromDate || undefined,
+                    to_date: toDate || undefined,
+                  })
+                  .then((r) => ({ rows: r.data.payments, total: r.data.pagination.total })),
+              )
+            }
+          />
           </div>
         </CardHeader>
         <CardContent className="pt-0">

@@ -9,6 +9,7 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { Textarea } from "@/components/ui/Textarea";
 import { useProjects } from "@/hooks/use-projects";
 import { usePhases } from "@/hooks/use-phases";
+import type { Invoice } from "@/lib/api";
 
 const schema = z
   .object({
@@ -29,6 +30,8 @@ const schema = z
 export type InvoiceFormData = z.infer<typeof schema>;
 
 interface InvoiceFormProps {
+  /** When set the form edits this invoice instead of creating one. */
+  invoice?: Invoice | null;
   defaultProjectId?: string;
   formId: string;
   onSubmit: (data: InvoiceFormData) => Promise<void>;
@@ -45,7 +48,7 @@ const getDefaultValues = (defaultProjectId?: string): InvoiceFormData => ({
   notes: "",
 });
 
-export function InvoiceForm({ defaultProjectId, formId, onSubmit }: InvoiceFormProps) {
+export function InvoiceForm({ invoice, defaultProjectId, formId, onSubmit }: InvoiceFormProps) {
   const {
     register,
     control,
@@ -60,8 +63,21 @@ export function InvoiceForm({ defaultProjectId, formId, onSubmit }: InvoiceFormP
   });
 
   useEffect(() => {
-    reset(getDefaultValues(defaultProjectId));
-  }, [defaultProjectId, reset]);
+    if (invoice) {
+      reset({
+        project_id: String(invoice.project_id),
+        phase_id: invoice.phase_id != null ? String(invoice.phase_id) : "",
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        subtotal: invoice.subtotal,
+        vat_rate: invoice.vat_rate,
+        wht_rate: invoice.wht_rate,
+        notes: invoice.notes ?? "",
+      });
+    } else {
+      reset(getDefaultValues(defaultProjectId));
+    }
+  }, [invoice, defaultProjectId, reset]);
 
   const { data: projectsData } = useProjects({ limit: 100 });
   const projectOptions =

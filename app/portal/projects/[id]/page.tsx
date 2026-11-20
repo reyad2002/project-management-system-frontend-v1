@@ -142,7 +142,7 @@ export default function PortalProjectDetailPage() {
                     {
                       key: "reports",
                       label: "Reports",
-                      content: <PortalReportsTab projectId={id} projectType={project.type} />,
+                      content: <PortalReportsTab projectId={id} projectType={project.type} projectTitle={project.title} />,
                     },
                   ]
                 : []),

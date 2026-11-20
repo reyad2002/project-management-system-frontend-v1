@@ -33,6 +33,8 @@ import {
 import { PhaseFormModal } from "./PhaseFormModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InvoiceFormModal } from "@/app/dashboard/invoices/InvoiceFormModal";
+import { ProjectFormModal } from "@/app/dashboard/projects/ProjectFormModal";
+import { useClientsShortList } from "@/hooks/use-clients";
 import { PaymentFormModal } from "@/app/dashboard/payments/PaymentFormModal";
 import { invoiceStatusVariant } from "@/lib/status-badges";
 
@@ -63,6 +65,9 @@ export default function ProjectDetailPage() {
   const [deletingPhaseId, setDeletingPhaseId] = useState<string | null>(null);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { data: clientsData } = useClientsShortList();
 
   if (isLoading) {
     return (
@@ -95,13 +100,17 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Link href="/dashboard/projects">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
         </Link>
+        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit project
+        </Button>
       </div>
 
       <Card>
@@ -176,7 +185,7 @@ export default function ProjectDetailPage() {
                     {
                       key: "reports",
                       label: "Reports",
-                      content: <ProjectReportsTab projectId={id} projectType={project.type} />,
+                      content: <ProjectReportsTab projectId={id} projectType={project.type} projectTitle={project.title} />,
                     },
                   ]
                 : []),
@@ -304,12 +313,25 @@ export default function ProjectDetailPage() {
                         {payments.map((p) => (
                           <li
                             key={p.id}
-                            className="flex justify-between rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
+                            className="flex items-center justify-between gap-2 rounded-lg bg-[var(--muted-bg)] px-3 py-2 text-sm"
                           >
                             <span>
                               {p.payment_date} · {p.payment_method.replace("_", " ")}
                             </span>
-                            <span className="font-medium">{formatMoney(p.amount)}</span>
+                            <span className="flex items-center gap-1">
+                              <span className="font-medium">{formatMoney(p.amount)}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label="Edit payment"
+                                onClick={() => {
+                                  setEditingPaymentId(p.id);
+                                  setPaymentModalOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -386,9 +408,19 @@ export default function ProjectDetailPage() {
 
       <PaymentFormModal
         open={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        paymentId={null}
+        onClose={() => {
+          setPaymentModalOpen(false);
+          setEditingPaymentId(null);
+        }}
+        paymentId={editingPaymentId}
         defaultProjectId={id}
+      />
+
+      <ProjectFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        projectId={id}
+        clientOptions={(clientsData?.clients ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
       />
 
       <PhaseFormModal

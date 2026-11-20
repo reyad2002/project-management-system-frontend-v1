@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Table, TableHead, TableBody, TableRow, Th, Td, TableSkeletonRows } from "@/components/ui/Table";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft } from "lucide-react";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { arAgingColumns } from "@/lib/export-columns";
 
 function formatMoney(n: number) {
   return new Intl.NumberFormat("en-EG", {
@@ -96,7 +98,10 @@ export default function ArAgingPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Overdue invoices</CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle>Overdue invoices</CardTitle>
+                <ExportButton filename="ar-aging" sheet="AR aging" columns={arAgingColumns} fetchRows={async () => data.invoices ?? []} />
+              </div>
             </CardHeader>
             <CardContent>
               {!data.invoices?.length ? (

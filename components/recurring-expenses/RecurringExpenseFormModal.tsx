@@ -28,6 +28,7 @@ export function RecurringExpenseFormModal({ open, onClose, record }: RecurringEx
       amount: data.amount,
       billing_cycle: data.billing_cycle,
       next_due_date: data.next_due_date,
+      auto_charge: data.auto_charge,
       notes: data.notes || undefined,
     };
     if (record) {

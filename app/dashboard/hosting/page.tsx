@@ -4,6 +4,11 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { hostingColumns } from "@/lib/export-columns";
+import { recurringRevenueApi } from "@/lib/api";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
@@ -54,13 +59,36 @@ export default function HostingPage() {
 
       <Card>
         <CardHeader>
-          <div className="max-w-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+          <FilterDrawer
+            activeCount={status ? 1 : 0}
+            onClear={() => setStatus("")}
+            chips={
+              status
+                ? [{ key: "status", label: `Status: ${statusOptions.find((s) => s.value === status)?.label ?? status}`, onRemove: () => setStatus("") }]
+                : []
+            }
+          >
             <CustomSelect
-              label="Filter by status"
+              label="Status"
               options={statusOptions}
               value={status}
               onChange={(v) => setStatus(v as RecurringRevenueStatus | "")}
             />
+          </FilterDrawer>
+          <ExportButton
+            filename="hosting-and-recurring-revenue"
+            sheet="Hosting"
+            columns={hostingColumns}
+            fetchRows={() =>
+              fetchAllPages((page, limit) =>
+                recurringRevenueApi.list({ status: status || undefined, page, limit }).then((r) => ({
+                  rows: r.data.recurringRevenue,
+                  total: r.data.pagination?.total ?? r.data.recurringRevenue.length,
+                })),
+              )
+            }
+          />
           </div>
         </CardHeader>
         <CardContent>

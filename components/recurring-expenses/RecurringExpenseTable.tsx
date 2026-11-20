@@ -41,7 +41,14 @@ export function RecurringExpenseTable({ records, onEdit, onDelete, onMarkPaid, m
           const isOverdue = r.status === "active" && r.next_due_date < new Date().toISOString().slice(0, 10);
           return (
           <TableRow key={r.id}>
-            <Td className="font-medium">{r.name}</Td>
+            <Td className="font-medium">
+              {r.name}
+              {r.auto_charge && r.status === "active" && (
+                <Badge variant="info" dot={false} className="ml-2" title="Deducted automatically on the due date">
+                  Auto
+                </Badge>
+              )}
+            </Td>
             <Td>{r.project_title ?? "—"}</Td>
             <Td className="capitalize">{r.type.replace("_", " ")}</Td>
             <Td>{formatMoney(r.amount)}</Td>
@@ -54,7 +61,7 @@ export function RecurringExpenseTable({ records, onEdit, onDelete, onMarkPaid, m
             </Td>
             <Td align="right">
               <div className="flex justify-end gap-1">
-                {r.status !== "cancelled" && (
+                {r.status !== "cancelled" && !r.auto_charge && (
                   <Button
                     variant="ghost"
                     size="sm"

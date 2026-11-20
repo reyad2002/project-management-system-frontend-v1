@@ -7,6 +7,11 @@ import { useInvoices, useSendInvoice, useCancelInvoice } from "@/hooks/use-invoi
 import { useProjectsShortList } from "@/hooks/use-projects";
 import { useClientsShortList } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { FilterDrawer, type FilterChip } from "@/components/ui/FilterDrawer";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { fetchAllPages } from "@/lib/export";
+import { invoiceColumns } from "@/lib/export-columns";
+import { invoicesApi, type InvoiceStatus as ExportInvoiceStatus } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
@@ -56,6 +61,33 @@ export default function InvoicesPage() {
   const projectOptions = projectsData?.projects?.map((p) => ({ value: String(p.id), label: p.title })) ?? [];
   const clientOptions = clientsData?.clients?.map((c) => ({ value: String(c.id), label: c.name })) ?? [];
 
+  const chips: FilterChip[] = [
+    projectId && {
+      key: "project",
+      label: `Project: ${projectOptions.find((p) => p.value === projectId)?.label ?? projectId}`,
+      onRemove: () => {
+        setProjectId("");
+        setPage(1);
+      },
+    },
+    clientId && {
+      key: "client",
+      label: `Client: ${clientOptions.find((c) => c.value === clientId)?.label ?? clientId}`,
+      onRemove: () => {
+        setClientId("");
+        setPage(1);
+      },
+    },
+    status && {
+      key: "status",
+      label: `Status: ${INVOICE_STATUSES.find((s) => s.value === status)?.label ?? status}`,
+      onRemove: () => {
+        setStatus("");
+        setPage(1);
+      },
+    },
+  ].filter(Boolean) as FilterChip[];
+
   const pagination = data?.pagination;
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 0;
 
@@ -74,7 +106,17 @@ export default function InvoicesPage() {
 
       <Card>
         <CardHeader>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+          <FilterDrawer
+            activeCount={[projectId, clientId, status].filter(Boolean).length}
+            onClear={() => {
+              setProjectId("");
+              setClientId("");
+              setStatus("");
+              setPage(1);
+            }}
+            chips={chips}
+          >
             <Select
               label="Project"
               options={[{ value: "", label: "All projects" }, ...projectOptions]}
@@ -102,6 +144,28 @@ export default function InvoicesPage() {
                 setPage(1);
               }}
             />
+          </FilterDrawer>
+          <ExportButton
+            filename="invoices"
+            sheet="Invoices"
+            columns={invoiceColumns(
+              (id) => projectOptions.find((p) => p.value === String(id))?.label ?? "",
+              (id) => clientOptions.find((c) => c.value === String(id))?.label ?? "",
+            )}
+            fetchRows={() =>
+              fetchAllPages((page, limit) =>
+                invoicesApi
+                  .list({
+                    page,
+                    limit,
+                    project_id: projectId || undefined,
+                    client_id: clientId || undefined,
+                    status: (status as ExportInvoiceStatus) || undefined,
+                  })
+                  .then((r) => ({ rows: r.data.invoices, total: r.data.pagination.total })),
+              )
+            }
+          />
           </div>
         </CardHeader>
         <CardContent className="pt-0">

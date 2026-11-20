@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
@@ -17,6 +17,7 @@ const schema = z.object({
   amount: z.number().positive("Amount must be positive"),
   billing_cycle: z.enum(["monthly", "yearly"]),
   next_due_date: z.string().min(1, "Due date is required"),
+  auto_charge: z.boolean(),
   notes: z.string().optional(),
 });
 
@@ -35,6 +36,7 @@ const defaultValues: RecurringExpenseFormData = {
   amount: 0,
   billing_cycle: "monthly",
   next_due_date: "",
+  auto_charge: true,
   notes: "",
 };
 
@@ -49,6 +51,11 @@ export function RecurringExpenseForm({ record, formId, onSubmit }: RecurringExpe
     resolver: zodResolver(schema),
     defaultValues,
   });
+
+  const autoCharge = useWatch({ control, name: "auto_charge" });
+  const dueDate = useWatch({ control, name: "next_due_date" });
+  const cycle = useWatch({ control, name: "billing_cycle" });
+  const startsInThePast = !!dueDate && dueDate < new Date().toISOString().slice(0, 10);
 
   const { data: projectsData } = useProjectsShortList();
   const projectOptions = [
@@ -65,6 +72,7 @@ export function RecurringExpenseForm({ record, formId, onSubmit }: RecurringExpe
         amount: record.amount,
         billing_cycle: record.billing_cycle,
         next_due_date: record.next_due_date,
+        auto_charge: record.auto_charge ?? true,
         notes: record.notes ?? "",
       });
     } else {
@@ -141,6 +149,23 @@ export function RecurringExpenseForm({ record, formId, onSubmit }: RecurringExpe
           error={errors.next_due_date?.message}
           {...register("next_due_date")}
         />
+      </div>
+      <div className="rounded-lg border border-(--border) p-3">
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-0.5" {...register("auto_charge")} />
+          <span>
+            <span className="font-medium text-foreground">Deduct automatically</span>
+            <span className="block text-xs text-(--muted)">
+              On each due date the expense is recorded for you and the date moves forward one {cycle === "yearly" ? "year" : "month"}.
+              Turn it off to confirm each payment yourself.
+            </span>
+          </span>
+        </label>
+        {autoCharge && startsInThePast && (
+          <p className="mt-2 text-xs text-(--caution)">
+            This date has already passed: every missed {cycle === "yearly" ? "year" : "month"} up to today will be recorded as an expense when you save.
+          </p>
+        )}
       </div>
       <Textarea label="Notes" error={errors.notes?.message} {...register("notes")} />
     </form>
